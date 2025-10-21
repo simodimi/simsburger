@@ -1,0 +1,45 @@
+.acceptbtn {
+  background-color: #228b22;
+}
+.acceptbtn:hover {
+  background-color: #2ecc71;
+}
+.rejectbtn {
+  background-color: #b22222;
+}
+.rejectbtn:hover {
+  background-color: #e74c3c;
+}
+.retourbtn {
+  background-color: #1e3a8a;
+}
+.retourbtn:hover {
+  background-color: #3b82f6;
+}
+.nextbtn {
+  background-color: #6a0dad;
+}
+.nextbtn:hover {
+  background-color: #9b59b6;
+}
+.decouvertebtn {
+  background-color: #fff;
+  color: #e31937;
+}
+.decouvertebtn:hover {
+  background-color: #e31937;
+  color: #fff;
+}
+.SimButton {
+  color: white;
+  padding: 20px 40px;
+  border-radius: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  border: none;
+}
+.SimButton * {
+  cursor: pointer;
+}

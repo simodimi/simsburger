@@ -1,0 +1,164 @@
+@import url("https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Passions+Conflict&family=Quicksand:wght@300..700&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+.TopbarName {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #e31937;
+  height: 120px;
+  width: 100%;
+  padding: 0 30px;
+}
+.TopbarTitle {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 30px;
+}
+.TopbarParams {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+.TopbarLogo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+.TopbarLogoContainer {
+  position: relative;
+}
+.TopbarLogoSmoke {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 20px;
+  border-radius: 30%;
+  background-color: rgba(255, 255, 255, 1);
+  opacity: 0;
+  pointer-events: none;
+}
+.TopbarLogoContainer:hover .TopbarLogoSmoke {
+  animation: smoke 2s infinite ease-in-out;
+}
+@keyframes smoke {
+  0% {
+    transform: translateX(-50%) translateY(0) scale(1);
+    opacity: 0.5;
+    box-shadow: 0 0 0 rgba(255, 255, 255, 0.5),
+      0 0 10px rgba(255, 255, 255, 0.5), 0 0 20px rgba(255, 255, 255, 0.3);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-15px) scale(1.5);
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateX(-50%) translateY(-30px) scale(2);
+    opacity: 0;
+  }
+}
+.TopbarIcon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+.TopbarIcon img {
+  width: 50px;
+  height: 50px;
+}
+.TopbarIcon img:hover {
+  cursor: pointer;
+}
+.TopbarIcon:hover p {
+  /*display: block;*/
+  color: black;
+  animation: dimi 0.3s linear;
+  opacity: 1;
+  color: gainsboro;
+}
+@keyframes dimi {
+  0% {
+    margin-top: 20px;
+  }
+  100% {
+    margin-top: 0px;
+  }
+}
+.TopbarIcon p {
+  display: flex;
+  position: absolute;
+  white-space: nowrap;
+  width: auto;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+}
+.TopbarLogo img {
+  width: 60px;
+  height: 60px;
+}
+.TopbarLogo span {
+  font-weight: bold;
+  font-family: "Roboto", sans-serif;
+  /* font-family: "Passions Conflict", cursive; */
+}
+.account {
+  position: absolute;
+  top: -5px;
+  right: -10px;
+  font-size: 15px;
+  font-weight: bold;
+  color: #e31937;
+  background-color: white;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.TopbarOther {
+  display: flex;
+  justify-content: space-between;
+  flex: 1;
+  gap: 50px;
+}
+
+#menMenu img {
+  display: none;
+}
+.TopbarLine {
+  display: flex;
+  width: 100%;
+}
+.TopBarMenu {
+  display: none;
+}
+@media screen and (max-width: 785px) {
+  .TopbarTitle,
+  .TopbarParams {
+    display: none;
+  }
+  .TopBarMenu {
+    display: block;
+    position: relative;
+  }
+  .TopBarMenu .TopbarTitle {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    z-index: 9999;
+    gap: 5px;
+    background-color: #e31937;
+    width: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 5px 0;
+    border-radius: 10px;
+  }
+}

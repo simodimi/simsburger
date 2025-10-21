@@ -1,0 +1,357 @@
+.Article {
+  width: 80%;
+  display: flex;
+  flex-direction: column;
+  padding: 50px 0px;
+  margin: 0 auto;
+}
+.DescribeArticle {
+  padding: 60px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+.DescribeProductName {
+  text-align: center;
+  font-size: 50px;
+  font-weight: bold;
+  font-family: "Passions Conflict", cursive;
+  color: #e31937;
+}
+.DescribeProduct {
+  width: 60%;
+}
+.ProductDescription {
+  width: 100%;
+  border-bottom: 1px solid #e31937;
+  padding: 0 0 20px 0;
+}
+.ProductDescription p {
+  text-align: justify;
+  padding: 0 15px;
+}
+.ProductAllergens {
+  width: 100%;
+  border-bottom: 1px solid #e31937;
+  padding: 20px 0;
+}
+.ProductCalories {
+  width: 100%;
+  padding: 20px 0;
+}
+.AllergensTitle {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 15px;
+}
+.AllergensVariety {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 85px;
+  opacity: 1;
+  transition: all 0.5s linear;
+}
+.AllergensVarietyx {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  height: fit-content;
+  opacity: 1;
+}
+
+.ProductImage {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  width: 40%;
+  height: 300px;
+  position: relative;
+}
+.ProductImageSlider {
+  width: 100%;
+  position: relative;
+}
+.ImagePresentation {
+  display: flex;
+  width: 100%;
+  height: 200px;
+  justify-content: center;
+  align-items: center;
+}
+.ImagePresentation #img2 {
+  position: absolute;
+  width: 300px;
+  height: 200px;
+  object-fit: cover;
+  z-index: 30;
+  top: 10px;
+}
+.ImagePresentation #img1 {
+  position: absolute;
+  width: 250px;
+  height: 200px;
+  object-fit: cover;
+  z-index: 10;
+  left: -5%;
+}
+.ImagePresentation #img3 {
+  position: absolute;
+  width: 150px;
+  height: 200px;
+  object-fit: cover;
+  z-index: 10;
+  right: 10%;
+  top: 20px;
+}
+
+.AllergensTitle img {
+  width: 40px;
+  height: 40px;
+}
+.ValidationProduct {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  bottom: -25px;
+}
+.CompositionMenu {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+  margin: 0 auto;
+}
+.Personnalisation {
+  background-color: gainsboro;
+  height: fit-content;
+  border-radius: 10px;
+  width: 40%;
+}
+.PersonnalisationTitle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+}
+.Personnalisation img {
+  width: 40px;
+  height: 40px;
+}
+.IngredientModify {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+.Account {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.Account img {
+  width: 40px;
+  height: 40px;
+}
+.Adds {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.Adds img {
+  width: 200px;
+  height: 100px;
+}
+.IngredientModify span {
+  margin-top: 10px;
+  background-color: red;
+}
+.CompositionMenuHeader {
+  width: 60%;
+  height: fit-content;
+  background-color: sienna;
+}
+.CompositionMenuBurger {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+.CompositionMenuBurgers {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+.CompositionMenuBurgers p,
+.CompositionMenuBurger p {
+  background-color: blue;
+  color: white;
+  text-align: center;
+  padding: 15px 30px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.CompositionMenuBurgers p *,
+.CompositionMenuBurger p * {
+  cursor: pointer;
+}
+.menuactivechoice {
+  background-color: #e31937 !important;
+}
+
+.CompositionImageburger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 15px 0;
+  width: auto;
+  margin-top: 30px;
+}
+.CompositionImageburger img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+}
+.CompositionImageburger span {
+  position: absolute;
+  top: -10px;
+  width: fit-content;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  color: wheat;
+}
+.CircleSelected {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.CircleSelected img {
+  width: 30px;
+  height: 30px;
+}
+.Ingredient {
+  padding: 15px 0;
+  width: 60%; /*48*/
+}
+.Partition {
+  width: 100%;
+  height: fit-content;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.composition img {
+  height: 100%;
+  object-fit: scale-down;
+  width: 40%;
+  height: 150px;
+}
+.composition p {
+  width: 60%;
+  text-align: end;
+  font-weight: bold;
+  font-size: 20px;
+  border-bottom: 1px solid #e31937;
+}
+.composition {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: gray;
+  border-radius: 15px;
+}
+.IngredientPart {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  height: 100%;
+}
+.VarietyImage img {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  cursor: pointer;
+}
+.VarietyImage:hover p {
+  opacity: 1;
+}
+.VarietyImage p {
+  text-align: center;
+  opacity: 0;
+}
+.VarietyImage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 10px 15px;
+}
+.hide {
+  height: 0px;
+  overflow: hidden;
+  opacity: 0;
+}
+.Boissons {
+  display: flex;
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #e31937 #da5064;
+  gap: 10px;
+  padding: 20px 0;
+  scroll-behavior: smooth;
+}
+.BoissonsSelecting {
+  display: flex;
+  flex-direction: column;
+}
+.BoissonsSelected img {
+  width: 100px;
+  height: 100px;
+  object-fit: scale-down;
+  cursor: pointer;
+}
+.BoissonsSelected {
+  display: flex;
+  width: 100px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+.priceAfficher {
+  color: white;
+}
+.activeprice {
+  color: green;
+}
+.desactiveprice {
+  color: red;
+}
+.hidden-item {
+  display: none !important;
+}
+#alert-dialog-description p {
+  font-family: "Passions Conflict", cursive;
+  font-size: 50px;
+  font-weight: bold;
+  text-align: center;
+  width: 400px;
+}
+.DialogActions {
+  display: flex;
+  justify-content: center;
+  margin: auto;
+}
+#messageConfirm {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+}

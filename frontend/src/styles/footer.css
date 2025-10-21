@@ -1,0 +1,128 @@
+.HomeFooter {
+  width: 100%;
+  height: 550px;
+  padding: 40px 0;
+  margin-top: 60px;
+  position: relative;
+}
+.HomeFooterBanner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 550px; /*580*/
+  z-index: -1;
+}
+.HomeFooterContent {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.HomeFooterBanner img {
+  width: 100%;
+  height: 100%;
+}
+.HomeReference {
+  display: flex;
+  width: 60%;
+  margin: 0 auto;
+  border-top: 2px solid white;
+  border-bottom: 2px solid white;
+  padding: 0px 20px 40px 20px;
+}
+.HomeLink {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.HomeLink img {
+  width: 50px;
+  height: 50px;
+}
+.HomeLink p {
+  font-size: 14px;
+  text-transform: capitalize;
+  font-weight: bold;
+  white-space: nowrap;
+}
+.HomeFooter h5 {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  text-transform: capitalize;
+  text-align: center;
+  margin-top: 30px;
+}
+.HomeFooter a {
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 14px;
+  color: #000;
+}
+.HomeFooter a * {
+  cursor: pointer;
+}
+.HomeDroitLegal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 60%;
+  margin: 0 auto;
+  padding: 40px 0 0 0;
+  gap: 30px;
+}
+.HomeLegacity {
+  display: flex;
+  gap: 20px;
+}
+.HomeLegacity a {
+  cursor: pointer;
+}
+.HomeFooterLogo {
+  display: flex;
+  flex: 2;
+}
+.HomeLocalisation {
+  flex: 1;
+}
+.HomeLinkCarte {
+  flex: 1;
+}
+.HomeContact {
+  flex: 1;
+}
+/*response*/
+
+@media screen and (min-width: 950px) and (max-width: 1145px) {
+  .HomeFooter {
+    height: fit-content;
+  }
+  .HomeFooterLogo {
+    flex-direction: column;
+    gap: 0;
+  }
+}
+@media screen and (max-width: 949px) {
+  .HomeFooter {
+    height: fit-content;
+  }
+  .HomeFooterLogo {
+    flex-direction: column;
+    gap: 0;
+  }
+  .HomeReference {
+    display: flex;
+    flex-direction: column !important;
+
+    width: 100%;
+  }
+  .HomeLink {
+    display: flex;
+    justify-content: center;
+  }
+  .HomeLegacity {
+    display: flex;
+    flex-direction: column;
+  }
+}

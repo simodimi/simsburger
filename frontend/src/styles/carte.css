@@ -1,0 +1,160 @@
+.CarteMain {
+  display: flex;
+  width: 100%;
+  height: calc(100vh - 120px);
+}
+.CarteMainTitle {
+  width: 20%;
+  display: flex;
+  flex-direction: column;
+  background-color: #da5064;
+  justify-content: center;
+  height: 100%;
+}
+.CarteMainTitleList {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 10px 0;
+  padding-left: 25%;
+  gap: 15px;
+}
+.CarteMainTitleListactive {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 10px 0;
+  padding-left: 25%;
+  gap: 15px;
+  background-color: #e31937;
+  color: white;
+}
+
+.CarteMainTitleList * {
+  cursor: pointer;
+}
+.CarteMainTitleList:hover {
+  cursor: pointer;
+  background-color: #e31937;
+  color: white;
+}
+.CarteMainTitleList p {
+  text-transform: capitalize;
+  font-weight: bold;
+  margin: 0;
+}
+.CarteMainTitleList img {
+  width: 30px;
+  height: 30px;
+}
+.CarteMain a {
+  text-decoration: none;
+  color: black;
+}
+.CarteMainContent {
+  width: 80%;
+  height: 100%;
+  overflow-y: auto;
+}
+.CartemainGeneral h5 {
+  font-size: 100px;
+  font-family: "Passions Conflict", cursive;
+  text-align: center;
+  margin: 0;
+  margin-top: 50px;
+}
+#CartemainGeneralText {
+  text-align: center;
+}
+.PrincipalMain {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, auto));
+  width: 100%;
+  justify-content: center;
+  gap: 50px;
+  padding: 30px 0;
+  margin: 0, auto;
+}
+.PrincipalPlate img {
+  width: 400px;
+  height: 250px;
+  border-radius: 15px;
+  object-fit: scale-down;
+}
+.PrincipalPlate p {
+  text-align: center;
+  font-weight: bold;
+  font-size: 20px;
+  text-transform: capitalize;
+  padding-top: 10px;
+}
+.PrincipalPlate {
+  height: 300px;
+  width: 400px;
+  border-radius: 15px;
+  box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.75);
+  -webkit-box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.75);
+  -moz-box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.75);
+}
+.PrincipalPlate {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.PrincipalPlate * {
+  cursor: pointer;
+}
+.PrincipalPlate:hover {
+  box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.75);
+  -webkit-box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.75);
+  -moz-box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.75);
+}
+.FilterElt {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-top: 15px;
+  gap: 10px;
+}
+.FilterElt * {
+  cursor: pointer;
+}
+.FilterElt img {
+  width: 60px;
+  height: 60px;
+}
+.FilterElt p {
+  text-align: center;
+}
+.FilterEltAll {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid white;
+  border-radius: 5px;
+  padding: 5px;
+}
+.FilterEltAll:hover {
+  box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.75);
+  border-color: black;
+}
+.PrincipalPlate.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+  position: relative;
+}
+.indisponible {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: red;
+  font-weight: bold;
+  font-size: 32px;
+  width: max-content;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 5px;
+  padding: 2px 6px;
+}

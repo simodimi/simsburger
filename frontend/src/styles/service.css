@@ -1,0 +1,121 @@
+.shoppingService {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-image: url("../assets/logo/serv.jpg");
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+.Service {
+  width: 80%;
+  display: flex;
+  flex-direction: column;
+  padding: 50px 10%;
+  background-color: rgba(255, 255, 255, 0.9);
+  margin-left: 50%;
+  transform: translateX(-50%);
+  height: calc(100vh -150px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.ServiceTitle {
+  display: flex;
+  align-items: center;
+}
+.ServiceOptionsContent {
+  width: 100%;
+}
+.ServiceTitle p {
+  font-size: 40px;
+  font-family: "Passions Conflict", cursive;
+  text-align: justify;
+}
+.ServiceOption {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.ServiceOptionLine {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+.ServiceOptionLine p {
+  width: auto;
+  font-size: 55px;
+  font-family: "Passions Conflict", cursive;
+  text-align: justify;
+  margin: auto;
+}
+.ServiceOptionLine img {
+  min-width: 40%;
+  height: 350px;
+  object-fit: fill;
+}
+.ServiceOptionIcons img {
+  cursor: pointer;
+}
+.ServiceOptionLine.affichage {
+  display: flex;
+  animation: test 1s linear;
+}
+@keyframes test {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+.ServiceOptionLine.cacher {
+  display: none;
+}
+.ServiceOption :first-child {
+  font-weight: bold;
+  font-size: 20px;
+}
+.address {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+.address a {
+  cursor: pointer;
+}
+form p {
+  font-size: 20px !important;
+  padding-left: 0 !important;
+  margin-left: 0 !important;
+  font-family: "Times New Roman", Times, serif !important;
+}
+form .UserDetails .AccountUserInformation textarea {
+  width: 800px;
+  min-height: 300px;
+  border: 1px solid #e31937;
+  border-radius: 5px;
+  padding: 10px;
+  outline-color: aqua;
+  margin-bottom: 15px;
+}
+#textmessageService {
+  color: red;
+}
+@media screen and (max-width: 1200px) {
+  form .UserDetails .AccountUserInformation textarea {
+    width: 600px;
+  }
+}
+
+@media screen and (max-width: 900px) {
+  form .UserDetails .AccountUserInformation textarea {
+    width: 400px;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  form .UserDetails .AccountUserInformation textarea {
+    width: 200px;
+  }
+}

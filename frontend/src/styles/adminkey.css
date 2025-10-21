@@ -1,0 +1,96 @@
+.keypage h2 {
+  text-align: center;
+  margin: 50px 0 20px 0;
+}
+#photoInventaires span {
+  width: 100%;
+  height: 50px;
+  border-radius: 10px;
+  border: 1px solid #e31937;
+  outline: none;
+  cursor: pointer;
+  padding: 10px 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+#photoInventaire img {
+  width: 100px;
+  height: 100px;
+}
+#commentaireProduit {
+  padding: 0;
+}
+.Alertesbtn {
+  display: flex;
+  justify-content: center;
+  margin-top: 50px;
+}
+#actionProducts {
+  display: flex;
+  height: 100%;
+  justify-content: center;
+  align-items: center;
+}
+.GestionSearch {
+  display: flex;
+  justify-content: center;
+  margin: 30px 0;
+}
+.GestionSearch input {
+  width: 50%;
+  height: 60px;
+  border: 1px solid #e31937;
+  border-radius: 5px;
+  padding: 0 10px;
+  font-size: 20px;
+  outline-color: aqua;
+}
+.searchGestionProduct {
+  background-color: white;
+  position: sticky;
+  width: 100%;
+  z-index: 100;
+  top: 0px;
+}
+.table-container {
+  max-height: 531px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.CartemainGeneral table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+.CartemainGeneral table thead {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+.CartemainGeneral thead {
+  background-color: #e31937;
+  color: white;
+  position: sticky;
+  top: 0px !important;
+  height: 80px;
+}
+.tbodyadmin td {
+  text-transform: capitalize;
+}
+.messageuser {
+  max-height: 150px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.messageTitleUser {
+  background-color: #e31937;
+  color: white;
+  padding: 20px 40px;
+  border-radius: 15px;
+  margin: 20px 0;
+}
+.messageTitleUser * {
+  cursor: pointer;
+}

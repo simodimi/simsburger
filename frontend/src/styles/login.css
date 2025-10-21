@@ -1,0 +1,140 @@
+form .ServiceInscription {
+  width: 50%;
+  margin-left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+.ServiceInscriptionTitle input {
+  width: 100%;
+  height: 55px;
+  border: 1px solid aqua;
+  border-radius: 5px;
+  padding: 0 10px;
+  outline-color: aqua;
+  font-family: "passions conflict", cursive;
+  font-size: 40px;
+}
+.btnLogin {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+}
+.loginFooter {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  gap: 10px;
+  margin-top: 30px;
+}
+.loginFooter a {
+  cursor: pointer;
+  text-decoration: none;
+}
+.LoginLogo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.LoginLogo p {
+  font-size: 55px;
+  font-family: "Passions Conflict", cursive;
+}
+#loginError {
+  text-align: center;
+  color: red;
+  font-size: 20px;
+}
+.parametreheader {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 15px;
+}
+.parametreUser,
+.parametreUsers {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 15px;
+}
+.parametreUsers P {
+  cursor: pointer;
+}
+#spinner {
+  width: 110px;
+  height: 110px;
+  animation: spinner 3s linear infinite;
+  display: flex;
+  z-index: 50;
+}
+
+@keyframes spinner {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+.spinnerContainer {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  position: relative;
+}
+#logospinner {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.verification img {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  padding: 0;
+}
+.verificationItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.verificationItem p {
+  margin: 0 !important;
+  padding: 0 !important;
+  font-size: 14px !important;
+}
+.icon {
+  width: 16px;
+  height: 16px;
+}
+.CguPlan {
+  width: 100%;
+  height: 100vh;
+  background-image: url("../assets/logo/chef2.jpg");
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+.loginCgu {
+  width: 80%;
+  margin-left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 20px 100px;
+  height: 100%;
+  overflow-y: auto;
+}
+.CguContent {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  margin-top: 50px;
+}
+.CguContent p {
+  text-align: justify;
+}

@@ -1,0 +1,302 @@
+.shopping {
+  width: 80%;
+  display: flex;
+  flex-direction: column;
+  padding: 50px 10%;
+  background-color: rgba(255, 255, 255, 0.9);
+  margin-left: 50%;
+  transform: translateX(-50%);
+  height: fit-content;
+}
+.shoppingnew {
+  width: 80%;
+  display: flex;
+  flex-direction: column;
+  padding: 50px 10%;
+  background-color: rgba(255, 255, 255, 0.9);
+  margin-left: 50%;
+  transform: translateX(-50%);
+  height: 100%;
+}
+.widthshop {
+  height: calc(100vh + 200px) !important;
+}
+.shoppingnews {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-image: url("../assets/logo/chef2.jpg");
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+.shoppings {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-image: url("../assets/logo/chef2.jpg");
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  height: 250px;
+  /*border: 1px solid #ddd;*/
+}
+tbody {
+  display: block;
+  /*height: 300px;*/
+}
+thead th {
+  position: sticky;
+  width: 100%;
+}
+th,
+td {
+  padding: 10px;
+  text-align: center;
+  border: 1px solid #ddd; /* <-- ajoute ça */
+  text-align: center;
+}
+tr:hover {
+  background-color: #f5f5f5;
+}
+.shoppingcontent {
+  max-height: 293px !important;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  margin-top: 20px;
+}
+.shoppingcontent img {
+  width: 200px;
+  height: 100px;
+  object-fit: scale-down;
+}
+#btnpaiement {
+  text-align: center;
+}
+#btnpaiement button {
+  margin: 0 auto;
+}
+thead,
+tbody tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+#btnligne {
+  height: auto;
+}
+.AdresseTitle img {
+  width: 40px;
+  height: 40px;
+}
+.AdresseTitle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  background-color: #e31937;
+}
+.AdresseTitle p {
+  font-weight: bold;
+  font-size: 20px;
+}
+.AdresseUser {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-transform: capitalize;
+  width: 50%;
+}
+#errorText {
+  text-align: center;
+}
+.AccountUser {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.AccountUsers {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+}
+.AccountContainer {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+.AccountUserInformation {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+.AccountUserInformation input {
+  width: 100%;
+  height: 40px;
+  border: 1px solid #e31937;
+  border-radius: 5px;
+  padding: 0 10px;
+  margin-bottom: 10px;
+  outline-color: aqua;
+}
+.AccountRue {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+.AccountRueName {
+  width: 65%;
+}
+.AccountRueName input {
+  width: 100%;
+  height: 40px;
+  border: 1px solid #e31937;
+  border-radius: 5px;
+  padding: 0 10px;
+  margin-bottom: 10px;
+  outline-color: aqua;
+}
+.AccountRueNumber {
+  width: 30%;
+}
+.AccountRueNumber input {
+  width: 100%;
+  height: 40px;
+  border: 1px solid #e31937;
+  border-radius: 5px;
+  padding: 0 10px;
+  margin-bottom: 10px;
+  outline-color: aqua;
+}
+.AccountUserInf {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+.AccountUserInfs {
+  display: flex;
+  flex-direction: column;
+  width: 47%;
+}
+.AccountUser input {
+  height: 40px;
+  border: 1px solid #e31937;
+  border-radius: 5px;
+  padding: 0 10px;
+  outline-color: aqua;
+}
+.AccountUserInf input {
+  width: 100%;
+  height: 40px;
+  border: 1px solid #e31937;
+  border-radius: 5px;
+  padding: 0 10px;
+  margin-bottom: 10px;
+  outline-color: aqua;
+}
+.Delivery {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 50px;
+  width: 100%;
+  margin-top: 20px;
+}
+.DeliveryPrice {
+  display: flex;
+  gap: 30px;
+}
+.btnprepayment {
+  display: flex;
+  justify-content: center;
+}
+.shoppingAdresse {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+  gap: 50px;
+  margin-top: 50px;
+}
+.UserDetails {
+  width: 50%;
+}
+.localisation button {
+  height: 30px;
+  border: 1px solid aqua;
+  border-radius: 5px;
+  padding: 0 10px;
+  margin: 10px 0;
+}
+.shoppingempty {
+  height: calc(100vh - 275px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  font-family: "Passions Conflict", cursive;
+  font-size: 60px;
+}
+.shoppingfull {
+  height: calc(100vh - 275px);
+}
+.ImagePresentations {
+  display: flex;
+  width: 100%;
+  height: 200px;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+.ImagePresentations #img2 {
+  position: absolute;
+  width: 150px;
+  height: 200px;
+  object-fit: scale-down;
+  z-index: 30;
+  top: 10px;
+}
+.ImagePresentations #img1 {
+  position: absolute;
+  width: 100px;
+  height: 200px;
+  object-fit: scale-down;
+  z-index: 10;
+  left: -10%;
+}
+.ImagePresentations #img3 {
+  position: absolute;
+  width: 100px;
+  height: 200px;
+  object-fit: scale-down;
+  z-index: 10;
+  right: -10%;
+  top: 10px;
+}
+.UserDetails {
+  position: relative;
+}
+#erreuradresse {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  text-align: center;
+  width: 100%;
+  font-size: 25px;
+  color: #e31937;
+}
+.headercommand {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  position: absolute;
+  top: -20%;
+}
