@@ -11,6 +11,7 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import { jsPDF } from "jspdf";
 import liv from "../assets/logo/liv.png";
+import sleep from "../assets/icone/sleep.gif";
 const New = ({
   setusercommande,
   codereduction,
@@ -167,7 +168,11 @@ const New = ({
   const [drive, setdrive] = useState(false);
   //ouvrir la section livraison
   const handleDrive = () => {
-    setdrive(!drive);
+    if (isClosed) {
+      setOpen5(true);
+    } else {
+      setdrive(!drive);
+    }
   };
   //boîte de dialogue
   const [open10, setOpen10] = useState(false);
@@ -177,14 +182,23 @@ const New = ({
   const [open2, setOpen2] = useState(false);
   const [open3, setOpen3] = useState(false);
   const [open4, setOpen4] = useState(false);
+  const [open5, setOpen5] = useState(false);
   const [deliveryFee, setDeliveryFee] = useState(0);
   const handleClickOpen = () => {
-    setOpen10(true);
-    setdrive(false);
+    if (isClosed()) {
+      setOpen5(true);
+    } else {
+      setOpen10(true);
+      setdrive(false);
+    }
   };
   const handleEmporter = () => {
-    setOpen21(true);
-    setdrive(false);
+    if (isClosed()) {
+      setOpen5(true);
+    } else {
+      setOpen21(true);
+      setdrive(false);
+    }
   };
   //sauvegarde de la commande pour les statistiques
   const updateStats = (orderData) => {
@@ -270,6 +284,7 @@ const New = ({
     setOpen21(false);
     setOpen31(false);
     setOpen3(false);
+    setOpen5(false);
   };
   const handleClose1 = () => {
     setOpen1(false);
@@ -522,6 +537,32 @@ const New = ({
       settexterrorlivraison("Adresse incorrecte ou introuvable.");
     }
   };
+  //heure de non prise des commande
+  const isClosed = () => {
+    const currentHour = new Date().getHours();
+    return currentHour < 11 || currentHour >= 23;
+  };
+  //mis à jour de l'heure
+  const [timer, setTimer] = useState(
+    new Date().toLocaleTimeString("fr-FR", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    })
+  );
+  useEffect(() => {
+    const timing = setInterval(() => {
+      setTimer(
+        new Date().toLocaleTimeString("fr-FR", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        })
+      );
+    }, 1000);
+
+    return () => clearInterval(timing);
+  }, []);
 
   return (
     <div className={`shoppingnews ${drive ? "widthshop" : ""}`}>
@@ -1071,6 +1112,30 @@ const New = ({
               }}
             >
               SE CONNECTER
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
+      {open5 && (
+        <Dialog open={open5} onClose={handleClose} className="custom-dialog">
+          <DialogContent>
+            <DialogContentText id="alert-dialog-description">
+              <p>Ton burger,Ton kiff,Ton Sim'sburger</p>
+            </DialogContentText>
+            <DialogContentText id="messageConfirm">
+              desolé,sims'burger à sommeil ,il se reveillera demain à 11h
+            </DialogContentText>
+            <DialogContentText id="messageConfirm" color="#e31937">
+              {timer}
+            </DialogContentText>
+            <DialogContentText id="messageConfirm">
+              <img src={sleep} alt="" width={200} />
+            </DialogContentText>
+          </DialogContent>
+
+          <DialogActions className="DialogActions">
+            <Button onClick={handleClose} className="rejectbtn">
+              ANNULER
             </Button>
           </DialogActions>
         </Dialog>
