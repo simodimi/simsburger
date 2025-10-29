@@ -18,8 +18,6 @@ const New = ({
   pointsCumules,
   pointsUtilises,
   setAllOrders,
-  setPointsUtilises,
-  setPointsCumules,
 }) => {
   const navigate = useNavigate();
   const handleback = () => {

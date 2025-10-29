@@ -11,6 +11,7 @@ import DialogContentText from "@mui/material/DialogContentText";
 import juste from "../assets/administrateur/true.png";
 import faux from "../assets/administrateur/cancel.png";
 import { toast } from "react-toastify";
+import axios from "axios";
 const InscriptionAdmin = () => {
   const navigate = useNavigate();
   const handleback = () => {
@@ -18,6 +19,7 @@ const InscriptionAdmin = () => {
   };
   const [msgerror, setmsgerror] = useState(false);
   const [msgerrortext, setmsgerrortext] = useState("");
+  const [loading, setloading] = useState(false);
   //boîte de dialogue
   const [open10, setOpen10] = useState(false);
 
@@ -75,7 +77,48 @@ const InscriptionAdmin = () => {
       passwordverification(e.target.value);
     }
   };
-  const handlesubmit = (e) => {
+  // Fonction pour vérifier le statut de validation
+  const checkAdminStatus = async (idadmin) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:5000/admin/status/${idadmin}`
+      );
+      return response.data.isactive;
+    } catch (error) {
+      console.error("Erreur vérification statut:", error);
+      return false;
+    }
+  };
+
+  // Polling pour vérifier la validation
+  const startStatusPolling = (idadmin) => {
+    const interval = setInterval(async () => {
+      const isActive = await checkAdminStatus(idadmin);
+      if (isActive) {
+        clearInterval(interval);
+        toast.success("Votre compte a été validé! Vous pouvez vous connecter.");
+        handleClose();
+        try {
+          // 🔥 Récupération des infos complètes de l'admin validé
+          const { data } = await axios.get(
+            `http://localhost:5000/admin/${idadmin}`
+          );
+          // ✅ Redirection vers LoginAdmin avec les données
+          navigate("/admin/", {
+            state: {
+              login: true,
+              login1: false,
+              adminData: data, // on passe les infos
+            },
+          });
+        } catch (err) {
+          console.error("Erreur récupération admin:", err);
+          toast.error("Erreur lors de la récupération de vos données.");
+        }
+      }
+    }, 5000); // Vérifier toutes les 5 secondes
+  };
+  const handlesubmit = async (e) => {
     e.preventDefault();
     if (
       !dataform.adminemail ||
@@ -86,6 +129,7 @@ const InscriptionAdmin = () => {
       setmsgerror(true);
       setmsgerrortext("Veuillez remplir tous les champs");
       toast.error("Veuillez remplir tous les champs");
+      setloading(false);
       return;
     } // onClick={handleClickOpen}
     // Vérifier si les contraintes sont respectées
@@ -99,26 +143,53 @@ const InscriptionAdmin = () => {
     if (dataform.adminpasswordconfirm !== dataform.adminpassword) {
       setmsgerror(true);
       setmsgerrortext("Les mots de passes ne sont pas identiques");
+      setloading(false);
       return;
     }
-    if (
-      dataform.adminemail &&
-      dataform.adminname &&
-      dataform.adminpassword === dataform.adminpasswordconfirm
-    ) {
-      setmsgerror(false);
-      setmsgerrortext(false);
-      toast.success(
-        "Inscription reussie! attendre validation de l'administrateur"
+    setloading(true);
+    try {
+      //envoi des données vers le backend
+      const reponse = await axios.post(
+        "http://localhost:5000/admin/inscription",
+        dataform
       );
-      console.log(
-        "email" + dataform.adminemail,
-        "name" + dataform.adminname,
-        "password" + dataform.adminpassword,
-        "passwordconfirm" + dataform.adminpasswordconfirm
-      );
-      handleClickOpen();
-      return;
+      if (reponse.status === 201) {
+        toast.success(
+          "Inscription reussie! attendre validation de l'administrateur"
+        );
+        const idadmin = reponse.data.idadmin; //storer l'id de l'admin
+        handleClickOpen();
+        //démarrrer le polling pour verifier la validation
+        startStatusPolling(idadmin);
+        setdataform({
+          adminname: "",
+          adminemail: "",
+          adminpassword: "",
+          adminpasswordconfirm: "",
+        });
+        setverification({
+          verify1: false,
+          verify2: false,
+          verify3: false,
+          verify4: false,
+          verify5: false,
+        });
+        setcontrainte(false);
+        setmsgerror(false);
+        setmsgerrortext(false);
+      }
+    } catch (error) {
+      //afficher les messages d'erreur du backend
+      if (error.response?.data?.message) {
+        setmsgerror(true);
+        setmsgerrortext(error.response.data.message);
+        toast.error(error.response.data.message);
+        console.error("une erreur est survenue lors de l'inscription", error);
+      } else {
+        console.error("une erreur est survenue lors de l'inscription", error);
+      }
+    } finally {
+      setloading(false);
     }
   };
   const passwordverification = (password) => {
@@ -212,7 +283,7 @@ const InscriptionAdmin = () => {
                   )}
                   <div className="btnLogin">
                     <Button type="submit" className="nextbtn">
-                      S'inscrire
+                      {loading ? "Envoi en cours..." : "S'inscrire"}
                     </Button>
                   </div>
                 </div>

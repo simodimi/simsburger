@@ -24,7 +24,10 @@
 .Alertesbtn {
   display: flex;
   justify-content: center;
-  margin-top: 50px;
+  position: absolute;
+  left: 50%;
+  bottom: 1%;
+  transform: translateX(-50%);
 }
 #actionProducts {
   display: flex;
@@ -93,4 +96,8 @@
 }
 .messageTitleUser * {
   cursor: pointer;
+}
+.fournisseurscase {
+  overflow-x: auto;
+  scrollbar-width: thin;
 }

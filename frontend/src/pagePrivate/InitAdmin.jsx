@@ -9,6 +9,7 @@ import Step from "@mui/material/Step";
 import StepLabel from "@mui/material/StepLabel";
 import Typography from "@mui/material/Typography";
 import { toast } from "react-toastify";
+import axios from "./Utils";
 
 const InitAdmin = () => {
   const navigate = useNavigate();
@@ -20,13 +21,13 @@ const InitAdmin = () => {
   //gestion renitialisation
   const steps = ["Adresse email", "consulter vos mails", "Mot de passe"];
   const [activeStep, setActiveStep] = React.useState(0);
-  const handleNext = () => {
-    setActiveStep((prevActiveStep) => prevActiveStep + 1);
+  const handleNext = async () => {
+    // setActiveStep((prevActiveStep) => prevActiveStep + 1);
     //premier bouton suivant
     if (activeStep === 0) {
       if (!dataform.adminemail) {
         setmsgerror(true);
-        setmsgerrortext("Veuillez remplir tous les champs");
+        setmsgerrortext("Veuillez remplir le champ email");
         toast.error("Veuillez remplir tous les champs");
         setActiveStep(0);
         return;
@@ -39,6 +40,29 @@ const InitAdmin = () => {
         setActiveStep(0);
         return;
       }
+      try {
+        const response = await axios.post(
+          "http://localhost:5000/admin/forgotpassword",
+          { adminemail: dataform.adminemail }
+        );
+        if (response.status === 200) {
+          setmsgerror(true);
+          setmsgerrortext("");
+          toast.success(response.data.message);
+          setActiveStep((prev) => prev + 1);
+        }
+      } catch (error) {
+        if (error.response?.data?.message) {
+          setmsgerrortext(error.response.data.message);
+          toast.error(error.response.data.message);
+        } else {
+          console.error(
+            "une erreur est survenue lors de la vérification de l'email",
+            error
+          );
+        }
+        setmsgerror(true);
+      }
     }
     if (activeStep === 1) {
       if (!dataform.numeroverificationmail) {
@@ -46,19 +70,35 @@ const InitAdmin = () => {
         setmsgerrortext(
           "Veuillez remplir votre numero de verification reçu par mail"
         );
-        toast.error("Veuillez remplir tous les champs");
+        toast.error("Veuillez remplir le numero de verification");
         setActiveStep(1);
         return;
       }
-      const numbertest = "123456";
-      if (dataform.numeroverificationmail !== numbertest) {
+      try {
+        const response = await axios.post(
+          "http://localhost:5000/admin/verifycode",
+          {
+            adminemail: dataform.adminemail,
+            code: dataform.numeroverificationmail,
+          }
+        );
+
+        if (response.status === 200) {
+          toast.success(response.data.message);
+          setActiveStep(2);
+          setmsgerror(false);
+          setmsgerrortext("");
+        }
+      } catch (error) {
+        toast.error(error.response?.data?.message || "Code invalide ou expiré");
         setmsgerror(true);
-        setmsgerrortext("numero de verification non valide");
-        toast.error("numero de verification non valide");
+        setmsgerrortext(
+          error.response?.data?.message || "Code invalide ou expiré"
+        );
         setActiveStep(1);
-        return;
       }
     }
+
     if (activeStep === 2) {
       if (!dataform.adminpassword || !dataform.adminpasswordconfirm) {
         setmsgerror(true);
@@ -75,7 +115,8 @@ const InitAdmin = () => {
         return;
       }
       const regexpassword =
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
+
       if (!regexpassword.test(dataform.adminpassword)) {
         setmsgerror(true);
         setmsgerrortext(
@@ -85,11 +126,38 @@ const InitAdmin = () => {
           "Le mot de passe doit contenir au moins 8 caractères, une lettre majuscule, une lettre minuscule, un chiffre et un caractère special."
         );
         setActiveStep(2);
+        console.log(dataform.adminpassword);
         return;
       }
+      try {
+        // Appel à ton backend pour mettre à jour le mot de passe
+        const response = await axios.post(
+          "http://localhost:5000/admin/resetpassword",
+          {
+            adminemail: dataform.adminemail,
+            adminpassword: dataform.adminpassword,
+          }
+        );
+
+        if (response.status === 200) {
+          toast.success(response.data.message);
+          setActiveStep((prev) => prev + 1); // passe à l’étape suivante
+          setmsgerror(false);
+          setmsgerrortext("");
+        }
+      } catch (error) {
+        toast.error(
+          error.response?.data?.message ||
+            "Erreur lors de la mise à jour du mot de passe"
+        );
+        setmsgerror(true);
+        setmsgerrortext(
+          error.response?.data?.message ||
+            "Erreur lors de la mise à jour du mot de passe"
+        );
+        setActiveStep(2);
+      }
     }
-    setmsgerror(false);
-    setmsgerrortext("");
   };
   const handlechange = (e) => {
     setdataform({ ...dataform, [e.target.name]: e.target.value });
@@ -107,6 +175,8 @@ const InitAdmin = () => {
     if (activeStep === 3) {
       //supprimer bouton retour
     }
+    setmsgerror(false);
+    setmsgerrortext("");
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
   };
 

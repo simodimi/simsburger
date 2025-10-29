@@ -6,7 +6,13 @@ import Carte from "./pages/Carte";
 import New from "./pages/New";
 import Service from "./pages/Service";
 import Login from "./pages/Login";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import Topbar from "./containers/topbar/Topbar";
 import Cartemain from "./containers/Menumain/Cartemain";
 import Main from "./containers/Menumain/Main";
@@ -48,11 +54,14 @@ import Cgu from "./pages/Cgu";
 import Cgv from "./pages/Cgv";
 import Politique from "./pages/Politique";
 import Liste from "./pagePrivate/Liste";
+//importation authentification
+import { AuthProvider, useAuth } from "../src/pagePrivate/AuthContext";
+import ProtectedRoute from "./pagePrivate/ProtectedRoute";
 
 function App() {
   const [selectOpt, setselectOpt] = useState(MainList[0].id);
   const [selectOptAdmin, setselectOptAdmin] = useState(MainListAdmin[0].id);
-  const [user, setUser] = useState(true);
+  const [user, setUser] = useState(false);
   const [usercommande, setusercommande] = useState([]);
   const [codereduction, setcodereduction] = useState("");
   const [smsUser, setsmsUser] = useState([]);
@@ -99,6 +108,9 @@ function App() {
   const [usernamens, setusernamens] = useState();
 
   const Adminlayout = () => {
+    const { isAuthenticated } = useAuth();
+    const navigate = useNavigate();
+
     return (
       <>
         <TopbarAdmin />
@@ -108,10 +120,12 @@ function App() {
           <Route
             path="/dashboard/*"
             element={
-              <Dashbord
-                selectOptAdmin={selectOptAdmin}
-                setselectOptAdmin={setselectOptAdmin}
-              />
+              <ProtectedRoute>
+                <Dashbord
+                  selectOptAdmin={selectOptAdmin}
+                  setselectOptAdmin={setselectOptAdmin}
+                />
+              </ProtectedRoute>
             }
           >
             <Route path="chiffre" element={<Key />} />
@@ -125,10 +139,24 @@ function App() {
             />
             <Route path="*" element={<NofoundAdmin />} />
           </Route>
-          <Route path="/gestionmenu" element={<GestionMenu />} />
+          <Route
+            path="/gestionmenu"
+            element={
+              <ProtectedRoute>
+                <GestionMenu />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/initialisationadmin" element={<InitAdmin />} />
           <Route path="/inscriptionadmin" element={<InscriptionAdmin />} />
-          <Route path="/paramadmin" element={<ParamAdmin />} />
+          <Route
+            path="/paramadmin"
+            element={
+              <ProtectedRoute>
+                <ParamAdmin />
+              </ProtectedRoute>
+            }
+          />
           <Route path="*" element={<NofoundAdmin />} />
         </Routes>
       </>
@@ -138,112 +166,114 @@ function App() {
   return (
     <>
       <ProductProvider>
-        <BrowserRouter>
-          <Routes>
-            {/* espace user */}
-            {user ? (
-              <Route
-                path="/*"
-                element={
-                  <>
-                    <Topbar />
-                    <Routes>
-                      <Route path="/" element={<Home choice={choice} />} />
-                      <Route
-                        path="/nous rejoindre"
-                        element={
-                          <About smsUser={smsUser} setsmsUser={setsmsUser} />
-                        }
-                      />
-                      <Route
-                        path="/nouveauté"
-                        element={
-                          <New
-                            setusercommande={setusercommande}
-                            codereduction={codereduction}
-                            pointsCumules={pointsCumules}
-                            setPointsCumules={setPointsCumules}
-                            pointsUtilises={pointsUtilises}
-                            setPointsUtilises={setPointsUtilises}
-                            setCommandeUser={setCommandeUser}
-                            commandeuser={commandeuser}
-                            setAllOrders={setAllOrders}
-                          />
-                        }
-                      />
-                      <Route
-                        path="/carte/*"
-                        element={
-                          <Carte
-                            selectOpt={selectOpt}
-                            setselectOpt={setselectOpt}
-                          />
-                        }
-                      >
+        <AuthProvider>
+          <BrowserRouter>
+            <Routes>
+              {/* espace user */}
+              {user ? (
+                <Route
+                  path="/*"
+                  element={
+                    <>
+                      <Topbar />
+                      <Routes>
+                        <Route path="/" element={<Home choice={choice} />} />
                         <Route
-                          path=""
-                          element={<Cartemain setselectOpt={setselectOpt} />}
+                          path="/nous rejoindre"
+                          element={
+                            <About smsUser={smsUser} setsmsUser={setsmsUser} />
+                          }
                         />
-                        <Route path="nouveau" element={<News />} />
-                        <Route path="menu" element={<Main />} />
-                        <Route path="hamburger" element={<Hamburgers />} />
-                        <Route path="wraps" element={<Wraps />} />
-                        <Route path="salade" element={<Salade />} />
-                        <Route path="snacks" element={<Snack />} />
-                        <Route path="dessert" element={<Dessert />} />
-                        <Route path="boisson" element={<Boisson />} />
-                        <Route path="sauce" element={<Sauce />} />
-                        <Route path="cheap" element={<Bpc />} />
-                        <Route path="*" element={<Nofound />} />
                         <Route
-                          path=":categorie/:text"
-                          element={<DescribeProduct />}
+                          path="/nouveauté"
+                          element={
+                            <New
+                              setusercommande={setusercommande}
+                              codereduction={codereduction}
+                              pointsCumules={pointsCumules}
+                              setPointsCumules={setPointsCumules}
+                              pointsUtilises={pointsUtilises}
+                              setPointsUtilises={setPointsUtilises}
+                              setCommandeUser={setCommandeUser}
+                              commandeuser={commandeuser}
+                              setAllOrders={setAllOrders}
+                            />
+                          }
                         />
-                      </Route>
-                      <Route path="/services" element={<Service />} />
-                      <Route
-                        path="/connecter"
-                        element={
-                          <Login
-                            usercommande={usercommande}
-                            setusercommande={setusercommande}
-                            setcodereduction={setcodereduction}
-                            pointsCumules={pointsCumules}
-                            setPointsCumules={setPointsCumules}
-                            pointsUtilises={pointsUtilises}
-                            setPointsUtilises={setPointsUtilises}
-                            login2={login2}
-                            usernamens={usernamens}
+                        <Route
+                          path="/carte/*"
+                          element={
+                            <Carte
+                              selectOpt={selectOpt}
+                              setselectOpt={setselectOpt}
+                            />
+                          }
+                        >
+                          <Route
+                            path=""
+                            element={<Cartemain setselectOpt={setselectOpt} />}
                           />
-                        }
-                      />
-                      <Route
-                        path="/inscription"
-                        element={
-                          <Connection
-                            setlogin2={setlogin2}
-                            setusernamens={setusernamens}
+                          <Route path="nouveau" element={<News />} />
+                          <Route path="menu" element={<Main />} />
+                          <Route path="hamburger" element={<Hamburgers />} />
+                          <Route path="wraps" element={<Wraps />} />
+                          <Route path="salade" element={<Salade />} />
+                          <Route path="snacks" element={<Snack />} />
+                          <Route path="dessert" element={<Dessert />} />
+                          <Route path="boisson" element={<Boisson />} />
+                          <Route path="sauce" element={<Sauce />} />
+                          <Route path="cheap" element={<Bpc />} />
+                          <Route path="*" element={<Nofound />} />
+                          <Route
+                            path=":categorie/:text"
+                            element={<DescribeProduct />}
                           />
-                        }
-                      />
-                      <Route path="/initialisation" element={<Init />} />
-                      <Route path="/parametre" element={<Parametre />} />
+                        </Route>
+                        <Route path="/services" element={<Service />} />
+                        <Route
+                          path="/connecter"
+                          element={
+                            <Login
+                              usercommande={usercommande}
+                              setusercommande={setusercommande}
+                              setcodereduction={setcodereduction}
+                              pointsCumules={pointsCumules}
+                              setPointsCumules={setPointsCumules}
+                              pointsUtilises={pointsUtilises}
+                              setPointsUtilises={setPointsUtilises}
+                              login2={login2}
+                              usernamens={usernamens}
+                            />
+                          }
+                        />
+                        <Route
+                          path="/inscription"
+                          element={
+                            <Connection
+                              setlogin2={setlogin2}
+                              setusernamens={setusernamens}
+                            />
+                          }
+                        />
+                        <Route path="/initialisation" element={<Init />} />
+                        <Route path="/parametre" element={<Parametre />} />
 
-                      <Route path="*" element={<Nofound />} />
-                    </Routes>
-                  </>
-                }
-              />
-            ) : (
-              /*espaceAdmin*/
-              <Route path="/admin/*" element={<Adminlayout />} />
-            )}
-            <Route path="/cgu" element={<Cgu />} />
-            <Route path="/cgv" element={<Cgv />} />
-            <Route path="/protection" element={<Politique />} />
-          </Routes>
-          <Notification />
-        </BrowserRouter>
+                        <Route path="*" element={<Nofound />} />
+                      </Routes>
+                    </>
+                  }
+                />
+              ) : (
+                /*espaceAdmin*/
+                <Route path="/admin/*" element={<Adminlayout />} />
+              )}
+              <Route path="/cgu" element={<Cgu />} />
+              <Route path="/cgv" element={<Cgv />} />
+              <Route path="/protection" element={<Politique />} />
+            </Routes>
+            <Notification />
+          </BrowserRouter>
+        </AuthProvider>
       </ProductProvider>
     </>
   );

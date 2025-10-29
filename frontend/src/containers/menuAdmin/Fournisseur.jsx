@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import fromage from "../../assets/composition/fromage2.png";
 import "../../styles/adminkey.css";
 import Button from "../../components/Button";
@@ -6,11 +6,15 @@ import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
+import entre from "../../assets/logo/image.png";
 import { toast } from "react-toastify";
+import axios from "../../pagePrivate/Utils";
 
 const Fournisseur = () => {
   const [viewfournisseurs, setViewfournisseurs] = useState(false);
   const [btnctrl, setBtnctrl] = useState(true);
+  const [previewimage, setpreviewimage] = useState(null);
+
   //ajouter un tableau avec les fournisseurs
   const [addfournisseur, setaddfournisseur] = useState({
     id: "",
@@ -21,38 +25,89 @@ const Fournisseur = () => {
     email: "",
     commentaire: "",
   });
+
+  //charger les fournisseurs aux montages
+
+  const getFournisseurs = async () => {
+    try {
+      const response = await axios.get("http://localhost:5000/fournisseur");
+
+      setNewfournisseurs(response.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  useEffect(() => {
+    getFournisseurs();
+  }, []);
+
   //creerun tableau des fournisseur
   const [newfournisseurs, setNewfournisseurs] = useState([]);
   const handleaddfournisseur = () => {
     setViewfournisseurs(true);
     setBtnctrl(false);
   };
-  const handlesavefournisseur = () => {
+  const handlesavefournisseur = async () => {
     if (
       !addfournisseur.nomentreprise ||
       !addfournisseur.nomproduit ||
-      !addfournisseur.telephone
+      !addfournisseur.telephone ||
+      !addfournisseur.email
     ) {
       toast.error(
         "Veuillez au moins remplir le nom de l'entreprise, le nom du produit et le numéro de téléphone."
       );
-      alert(
-        "Veuillez au moins remplir le nom de l'entreprise, le nom du produit et le numéro de téléphone."
-      );
+
       return;
     }
-    setViewfournisseurs(false);
-    setBtnctrl(true);
-    setNewfournisseurs((prev) => [...prev, addfournisseur]);
-    setaddfournisseur({
-      id: "",
-      nomentreprise: "",
-      logoproduit: "",
-      nomproduit: "",
-      telephone: "",
-      email: "",
-      commentaire: "",
-    });
+    try {
+      //CONSTRUIRE LE formdata
+      const formData = new FormData();
+      formData.append("nomentreprise", addfournisseur.nomentreprise);
+      formData.append("nomproduit", addfournisseur.nomproduit);
+      formData.append("telephone", addfournisseur.telephone);
+      formData.append("email", addfournisseur.email);
+      formData.append("commentaire", addfournisseur.commentaire);
+      //ajouter les fichiers si ils existent
+      if (addfournisseur.logoproduit instanceof File) {
+        formData.append("logoproduit", addfournisseur.logoproduit);
+      }
+      //envoyer la requete au backend
+      const response = await axios.post(
+        "http://localhost:5000/fournisseur",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        toast.success(`Fournisseur ${addfournisseur.nomentreprise} ajouté!`);
+        await getFournisseurs();
+        //setNewfournisseurs((prev) => [...prev, response.data]);
+        setaddfournisseur({
+          id: "",
+          nomentreprise: "",
+          logoproduit: "",
+          nomproduit: "",
+          telephone: "",
+          email: "",
+          commentaire: "",
+        });
+        setViewfournisseurs(false);
+        setBtnctrl(true);
+
+        //liste complete
+      }
+    } catch (error) {
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Une erreur s'est produite.");
+      }
+    }
   };
   const handlefournisseur = (e, field, value) => {
     setaddfournisseur((prev) => ({ ...prev, [field]: value }));
@@ -61,8 +116,9 @@ const Fournisseur = () => {
   const handlephoto = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const fileUrl = URL.createObjectURL(file);
-      handlefournisseur(e, "logoproduit", fileUrl);
+      //enregistrement du fichier dans addfournisseur pour le backend
+      handlefournisseur(e, "logoproduit", file);
+      setpreviewimage(URL.createObjectURL(file));
     }
   };
   //dialog
@@ -77,13 +133,24 @@ const Fournisseur = () => {
     setOpen10(true);
     setSelectedFournisseur(item);
   };
-  const handleClicknext1 = () => {
+  const handleClicknext1 = async () => {
     if (selectedFournisseur) {
-      setNewfournisseurs((prev) =>
-        prev.filter((fournisseur) => fournisseur.id !== selectedFournisseur.id)
-      );
+      try {
+        await axios.delete(
+          `http://localhost:5000/fournisseur/${selectedFournisseur.id}`
+        );
+        await getFournisseurs(); // mise à jour des données
+        toast.success(
+          `Fournisseur ${selectedFournisseur.nomentreprise} supprimé!`
+        );
+      } catch (error) {
+        console.error("Erreur suppression fournisseur:", error);
+        toast.error("Erreur lors de la suppression du fournisseur.");
+      } finally {
+        // On ferme seulement après que tout soit terminé
+        handleClose();
+      }
     }
-    handleClose();
   };
   const handledrop = () => {
     setViewfournisseurs(false);
@@ -99,10 +166,10 @@ const Fournisseur = () => {
     });
   };
   return (
-    <div className="CartemainGeneral">
+    <div className="CartemainGeneral" style={{ position: "relative" }}>
       <h5>Fournisseurs</h5>
 
-      {newfournisseurs.length === 0 ? (
+      {newfournisseurs.length === 0 && !viewfournisseurs ? (
         <div className="" style={{ textAlign: "center" }}>
           <p>Aucun fournisseur ajouté, cliquez sur le bouton ci-dessous.</p>
         </div>
@@ -184,9 +251,9 @@ const Fournisseur = () => {
                       <span onClick={() => picture.current.click()}>
                         Selectionner une image
                       </span>
-                      {addfournisseur.logoproduit && (
+                      {previewimage && (
                         <img
-                          src={addfournisseur.logoproduit}
+                          src={previewimage}
                           alt=""
                           style={{
                             display: "flex",
@@ -297,12 +364,12 @@ const Fournisseur = () => {
                   >
                     <td>{item.nomentreprise}</td>
                     <td id="photoInventaire">
-                      <img src={item.logoproduit} alt="" />
+                      <img src={item.logoproduit || entre} alt="" />
                     </td>
                     <td>{item.nomproduit}</td>
 
                     <td>{item.telephone}</td>
-                    <td>{item.email}</td>
+                    <td className="fournisseurscase">{item.email}</td>
                     <td id="actionProduct">
                       <Button
                         className="retourbtn"
@@ -318,7 +385,20 @@ const Fournisseur = () => {
                         width: "300px", // largeur fixe (tu ajustes selon ton besoin)
                       }}
                     >
-                      {item.commentaire}
+                      <textarea
+                        value={item.commentaire}
+                        style={{
+                          width: "100%",
+                          height: "calc(100% - 20px)",
+                          resize: "none",
+                          padding: "10px",
+                          outline: "none",
+                          cursor: "text",
+                          border: "0px",
+                          scrollbarWidth: "thin",
+                          pointerEvents: "none",
+                        }}
+                      />
                     </td>
                   </tr>
                 ))}
