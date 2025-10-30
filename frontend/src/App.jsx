@@ -6,13 +6,7 @@ import Carte from "./pages/Carte";
 import New from "./pages/New";
 import Service from "./pages/Service";
 import Login from "./pages/Login";
-import {
-  BrowserRouter,
-  Routes,
-  Route,
-  useLocation,
-  useNavigate,
-} from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import Topbar from "./containers/topbar/Topbar";
 import Cartemain from "./containers/Menumain/Cartemain";
 import Main from "./containers/Menumain/Main";
@@ -41,13 +35,11 @@ import GestionUser from "./pagePrivate/GestionUser";
 import InitAdmin from "./pagePrivate/InitAdmin";
 import InscriptionAdmin from "./pagePrivate/InscriptionAdmin";
 import ParamAdmin from "./pagePrivate/ParamAdmin";
-import Support from "./pagePrivate/Support";
 import HomeAdmin from "./pagePrivate/HomeAdmin";
 import Key from "./containers/menuAdmin/Key";
 import Statistique from "./containers/menuAdmin/Statistique";
 import Alert from "./containers/menuAdmin/Alert";
 import Fournisseur from "./containers/menuAdmin/Fournisseur";
-import Best from "./containers/menuAdmin/Best";
 import Nofound from "./pages/Nofound";
 import NofoundAdmin from "./pagePrivate/NofoundAdmin";
 import Cgu from "./pages/Cgu";
@@ -61,7 +53,7 @@ import ProtectedRoute from "./pagePrivate/ProtectedRoute";
 function App() {
   const [selectOpt, setselectOpt] = useState(MainList[0].id);
   const [selectOptAdmin, setselectOptAdmin] = useState(MainListAdmin[0].id);
-  const [user, setUser] = useState(false);
+  const [user, setUser] = useState(true);
   const [usercommande, setusercommande] = useState([]);
   const [codereduction, setcodereduction] = useState("");
   const [smsUser, setsmsUser] = useState([]);
@@ -71,6 +63,7 @@ function App() {
   const choice = (p) => {
     setselectOpt(p);
   };
+
   const choiceAdmin = (p) => {
     setselectOptAdmin(p);
   };

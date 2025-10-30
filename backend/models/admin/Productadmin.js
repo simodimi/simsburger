@@ -16,21 +16,9 @@ const Productadmin = sequelize.define("Productadmin", {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  category: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
   active: {
     type: DataTypes.BOOLEAN,
     defaultValue: true,
-  },
-  price: {
-    type: DataTypes.DECIMAL(10, 2),
-    allowNull: false,
-  },
-  stock: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0,
   },
   updatedAt: {
     type: DataTypes.DATE,

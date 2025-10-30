@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import fromage from "../assets/composition/fromage2.png";
 import "../styles/adminkey.css";
 import Button from "../components/Button";
 import {
@@ -15,43 +14,101 @@ import {
   wrap,
 } from "../containers/exportelt/Exportelt";
 import { toast } from "react-toastify";
+import axios from "../pagePrivate/Utils";
 
 const GestionMenu = () => {
-  const [statutmsg, setstatutmsg] = useState({}); //useState(false);
-  const [statut, setstatut] = useState({}); //useState(false);
-  //Récupération du localstorage au demarrage
-  useEffect(() => {
-    const save = JSON.parse(localStorage.getItem("productStatus")) || {};
-    setstatut(save);
-    setstatutmsg(save);
-  }, []);
-
-  //filtrage
+  const [statut, setstatut] = useState({});
+  const [loading, setLoading] = useState(true);
   const [filteredListpetit, setFilteredListpetit] = useState(bpc);
   const [filteredListgrand, setFilteredListgrand] = useState(hambs);
   const [boissonslist, setboissonslist] = useState(boissons);
   const dimi = [...snacks, ...sauce, ...salade, ...dessert, ...wrap];
   const [snackslist, setsnackslist] = useState(dimi);
-  // activation / désactivation
-  const handleselect = (id, text) => {
-    setstatut((prev) => {
-      const updated = { ...prev, [id]: !prev[id] };
-      localStorage.setItem("productStatus", JSON.stringify(updated));
-      toast.success(`${!updated[id] ? `${text} activé` : `${text} désactivé`}`);
-      return updated;
-    });
-    setstatutmsg((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
-  /* const handleselect = (id, text) => {
-    setstatut((prev) => ({ ...prev, [id]: !prev[id] }));
-    setstatutmsg((prev) => ({ ...prev, [id]: !prev[id] }));
-    toast.success(`${statut[id] ? `${text} activé` : `${text} désactivé`}`);
-  };*/
   const [search, setsearch] = useState("");
+
+  // Fonction pour initialiser la BDD - AJOUTER UN CATCH POUR ÉVITER LE BLOQUAGE
+  const initProducts = async () => {
+    try {
+      const allProducts = [
+        ...bpc,
+        ...hambs,
+        ...boissons,
+        ...snacks,
+        ...sauce,
+        ...salade,
+        ...dessert,
+        ...wrap,
+      ];
+
+      const response = await axios.post(
+        "http://localhost:5000/product/init",
+        allProducts
+      );
+
+      if (response.status === 200) {
+        toast.success("Produits initialisés en base !");
+        console.log(response.data.message);
+      }
+    } catch (error) {
+      console.error("Erreur d'initialisation:", error);
+    }
+  };
+
+  // Récupération des statuts depuis le backend
+  const loadProductStatus = async () => {
+    try {
+      const response = await axios.get("http://localhost:5000/product");
+      const statusData = response.data;
+      const statusMap = statusData.reduce((acc, product) => {
+        acc[product.productId] = product.active;
+        return acc;
+      }, {});
+      setstatut(statusMap);
+    } catch (error) {
+      console.error("Erreur chargement statuts:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Initialisation + chargement des statuts au démarrage
+  useEffect(() => {
+    const initAndLoad = async () => {
+      await initProducts();
+      await loadProductStatus();
+    };
+    initAndLoad();
+  }, []);
+
+  // Activation / désactivation d'un produit - CORRIGÉ
+  const handleselect = async (id, text) => {
+    try {
+      const newStatus = !statut[id];
+
+      // Mettre à jour l'état IMMÉDIATEMENT pour un feedback visuel rapide
+      setstatut((prev) => ({ ...prev, [id]: newStatus }));
+
+      const response = await axios.put(`http://localhost:5000/product/${id}`, {
+        active: newStatus,
+      });
+
+      if (response.status === 200) {
+        toast.success(`${text} ${newStatus ? "activé" : "désactivé"}`);
+      }
+    } catch (error) {
+      console.error("Erreur de mise à jour de statut:", error);
+      // REVERT en cas d'erreur
+      setstatut((prev) => ({ ...prev, [id]: !newStatus }));
+    }
+  };
+
+  if (loading) return <div>Chargement des produits...</div>;
+
   const handlesearch = (e) => {
     e.preventDefault();
     setsearch(e.target.value);
   };
+
   const handleEnter = (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -77,6 +134,7 @@ const GestionMenu = () => {
       );
     }
   };
+
   return (
     <div className="CartemainGeneral">
       <div className="searchGestionProduct">
@@ -93,28 +151,20 @@ const GestionMenu = () => {
           />
         </div>
       </div>
+
+      {/* PETITS BURGERS */}
       <div
-        className="shoppingfull "
-        style={{
-          maxHeight: "fit-content",
-          padding: "0px 20px 50px 20px",
-        }}
+        className="shoppingfull"
+        style={{ maxHeight: "fit-content", padding: "0px 20px 50px 20px" }}
       >
         <div
           className="shoppingcontent"
-          style={{
-            minHeight: "fit-content",
-            scrollbarWidth: "none",
-          }}
+          style={{ minHeight: "fit-content", scrollbarWidth: "none" }}
         >
           <div className="table-container">
             <table>
               <thead>
-                <tr
-                  style={{
-                    backgroundColor: "#e31937",
-                  }}
-                >
+                <tr style={{ backgroundColor: "#e31937" }}>
                   <th>Nom du burger</th>
                   <th>Photo du burger</th>
                   <th>Type de burger</th>
@@ -125,31 +175,25 @@ const GestionMenu = () => {
               <tbody className="tbodyadmin">
                 {filteredListpetit.length > 0 ? (
                   filteredListpetit.map((p) => (
-                    <tr
-                      style={{
-                        height: "150px",
-                      }}
-                      key={p.id}
-                    >
+                    <tr style={{ height: "150px" }} key={p.id}>
                       <td>{p.text}</td>
                       <td id="photoInventaire">
                         <img src={p.photo} alt="" />
                       </td>
                       <td>{p.taille}</td>
-
                       <td
                         style={{
-                          backgroundColor: statut[p.id] ? "red" : "green",
+                          backgroundColor: statut[p.id] ? "green" : "red",
                         }}
                       >
-                        {statut[p.id] ? "Désactivé" : "Activé"}
+                        {statut[p.id] ? "Activé" : "Désactivé"}
                       </td>
                       <td id="actionProducts">
                         <Button
                           className="retourbtn"
                           onClick={() => handleselect(p.id, p.text)}
                         >
-                          {statutmsg[p.id] ? "Activer" : "Désactiver"}
+                          {statut[p.id] ? "Désactiver" : "Activer"}
                         </Button>
                       </td>
                     </tr>
@@ -166,28 +210,20 @@ const GestionMenu = () => {
           </div>
         </div>
       </div>
+
+      {/* GRANDS BURGERS */}
       <div
-        className="shoppingfull "
-        style={{
-          maxHeight: "fit-content",
-          padding: "0px 20px 50px 20px",
-        }}
+        className="shoppingfull"
+        style={{ maxHeight: "fit-content", padding: "0px 20px 50px 20px" }}
       >
         <div
           className="shoppingcontent"
-          style={{
-            minHeight: "fit-content",
-            scrollbarWidth: "none",
-          }}
+          style={{ minHeight: "fit-content", scrollbarWidth: "none" }}
         >
           <div className="table-container">
             <table>
               <thead>
-                <tr
-                  style={{
-                    backgroundColor: "#e31937",
-                  }}
-                >
+                <tr style={{ backgroundColor: "#e31937" }}>
                   <th>Nom du burger</th>
                   <th>Photo du burger</th>
                   <th>Type de burger</th>
@@ -198,31 +234,25 @@ const GestionMenu = () => {
               <tbody className="tbodyadmin">
                 {filteredListgrand.length > 0 ? (
                   filteredListgrand.map((p) => (
-                    <tr
-                      style={{
-                        height: "150px",
-                      }}
-                      key={p.id}
-                    >
+                    <tr style={{ height: "150px" }} key={p.id}>
                       <td>{p.text}</td>
                       <td id="photoInventaire">
                         <img src={p.photo} alt="" />
                       </td>
                       <td>{p.taille}</td>
-
                       <td
                         style={{
-                          backgroundColor: statut[p.id] ? "red" : "green",
+                          backgroundColor: statut[p.id] ? "green" : "red",
                         }}
                       >
-                        {statut[p.id] ? "Désactivé" : "Activé"}
+                        {statut[p.id] ? "Activé" : "Désactivé"}
                       </td>
                       <td id="actionProducts">
                         <Button
                           className="retourbtn"
                           onClick={() => handleselect(p.id, p.text)}
                         >
-                          {statutmsg[p.id] ? "Activer" : "Désactiver"}
+                          {statut[p.id] ? "Désactiver" : "Activer"}
                         </Button>
                       </td>
                     </tr>
@@ -239,28 +269,20 @@ const GestionMenu = () => {
           </div>
         </div>
       </div>
+
+      {/* BOISSONS */}
       <div
-        className="shoppingfull "
-        style={{
-          maxHeight: "fit-content",
-          padding: "0px 20px 50px 20px",
-        }}
+        className="shoppingfull"
+        style={{ maxHeight: "fit-content", padding: "0px 20px 50px 20px" }}
       >
         <div
           className="shoppingcontent"
-          style={{
-            minHeight: "fit-content",
-            scrollbarWidth: "none",
-          }}
+          style={{ minHeight: "fit-content", scrollbarWidth: "none" }}
         >
           <div className="table-container">
             <table>
               <thead>
-                <tr
-                  style={{
-                    backgroundColor: "#e31937",
-                  }}
-                >
+                <tr style={{ backgroundColor: "#e31937" }}>
                   <th>Nom des sodas</th>
                   <th>Photo des sodas</th>
                   <th>Statut</th>
@@ -270,31 +292,24 @@ const GestionMenu = () => {
               <tbody className="tbodyadmin">
                 {boissonslist.length > 0 ? (
                   boissonslist.map((p) => (
-                    <tr
-                      style={{
-                        height: "150px",
-                      }}
-                      key={p.id}
-                    >
+                    <tr style={{ height: "150px" }} key={p.id}>
                       <td>{p.text}</td>
                       <td id="photoInventaire">
                         <img src={p.photo} alt="" />
                       </td>
-                      <td>{p.taille}</td>
-
                       <td
                         style={{
-                          backgroundColor: statut[p.id] ? "red" : "green",
+                          backgroundColor: statut[p.id] ? "green" : "red",
                         }}
                       >
-                        {statut[p.id] ? "Désactivé" : "Activé"}
+                        {statut[p.id] ? "Activé" : "Désactivé"}
                       </td>
                       <td id="actionProducts">
                         <Button
                           className="retourbtn"
                           onClick={() => handleselect(p.id, p.text)}
                         >
-                          {statutmsg[p.id] ? "Activer" : "Désactiver"}
+                          {statut[p.id] ? "Désactiver" : "Activer"}
                         </Button>
                       </td>
                     </tr>
@@ -311,31 +326,22 @@ const GestionMenu = () => {
           </div>
         </div>
       </div>
+
+      {/* SNACKS ET AUTRES */}
       <div
-        className="shoppingfull "
-        style={{
-          maxHeight: "fit-content",
-          padding: "0px 20px 50px 20px",
-        }}
+        className="shoppingfull"
+        style={{ maxHeight: "fit-content", padding: "0px 20px 50px 20px" }}
       >
         <div
           className="shoppingcontent"
-          style={{
-            minHeight: "fit-content",
-            scrollbarWidth: "none",
-          }}
+          style={{ minHeight: "fit-content", scrollbarWidth: "none" }}
         >
           <div className="table-container">
             <table>
               <thead>
-                <tr
-                  style={{
-                    backgroundColor: "#e31937",
-                  }}
-                >
+                <tr style={{ backgroundColor: "#e31937" }}>
                   <th>Nom autre</th>
                   <th>Photo autre</th>
-
                   <th>Statut</th>
                   <th>Actions</th>
                 </tr>
@@ -343,31 +349,24 @@ const GestionMenu = () => {
               <tbody className="tbodyadmin">
                 {snackslist.length > 0 ? (
                   snackslist.map((p) => (
-                    <tr
-                      style={{
-                        height: "150px",
-                      }}
-                      key={p.id}
-                    >
+                    <tr style={{ height: "150px" }} key={p.id}>
                       <td>{p.text}</td>
                       <td id="photoInventaire">
                         <img src={p.photo} alt="" />
                       </td>
-                      <td>{p.taille}</td>
-
                       <td
                         style={{
-                          backgroundColor: statut[p.id] ? "red" : "green",
+                          backgroundColor: statut[p.id] ? "green" : "red",
                         }}
                       >
-                        {statut[p.id] ? "Désactivé" : "Activé"}
+                        {statut[p.id] ? "Activé" : "Désactivé"}
                       </td>
                       <td id="actionProducts">
                         <Button
                           className="retourbtn"
                           onClick={() => handleselect(p.id, p.text)}
                         >
-                          {statutmsg[p.id] ? "Activer" : "Désactiver"}
+                          {statut[p.id] ? "Désactiver" : "Activer"}
                         </Button>
                       </td>
                     </tr>

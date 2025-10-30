@@ -8,20 +8,9 @@ const ScrollPage = ({ title, data, routePrefix }) => {
   const elementRefs = useRef({});
   //const [items, setItems] = useState(data); // éléments affichés (après filtre)
   const [items, setItems] = useState([]);
-  /* //filtrer les produits desactivés en les retirant de la liste
   useEffect(() => {
-    const savedStatus = JSON.parse(localStorage.getItem("productStatus")) || {};
-    const filtered = data.filter((item) => !savedStatus[item.id]); // garde les activés
-    setItems(filtered);
-  }, [data]);*/
-  //cacher par indisponible
-  useEffect(() => {
-    const savedStatus = JSON.parse(localStorage.getItem("productStatus")) || {};
-    const updated = data.map((item) => ({
-      ...item,
-      disabled: !!savedStatus[item.id],
-    }));
-    setItems(updated);
+    //mise à jour des éléments affichés (après filtre)
+    setItems(data);
   }, [data]);
   // navigation et sauvegarde de l'élément sélectionné
   const handleNavigate = (item) => {
@@ -68,15 +57,6 @@ const ScrollPage = ({ title, data, routePrefix }) => {
       <div className="PrincipalMain">
         {items.length > 0 ? (
           items.map((item) => (
-            /*  <div
-              className="PrincipalPlate"
-              key={item.id}
-              ref={(el) => (elementRefs.current[item.id] = el)}
-              onClick={() => handleNavigate(item)}
-            >
-              <p>{item.text}</p>
-              <img src={item.photo} alt={item.text} />
-            </div>*/
             <div
               className={`PrincipalPlate ${item.disabled ? "disabled" : ""}`}
               key={item.id}
