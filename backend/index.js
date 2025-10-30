@@ -6,6 +6,7 @@ const cors = require("cors");
 const adminRoutes = require("./routes/AdminRoute");
 const fournisseurRoutes = require("./routes/FournisseurRoute");
 const userRoutes = require("./routes/UserRoute");
+const InventaireRoutes = require("./routes/InventaireRoute");
 
 //importer les modeles et les relations
 require("./models/Unituser");
@@ -30,8 +31,9 @@ app.use("/admin", adminRoutes);
 app.use("/fournisseur", fournisseurRoutes);
 app.use("/user", userRoutes);
 app.use("/uploads", express.static("uploads"));
+app.use("/inventaire", InventaireRoutes);
 //lancement serveur
-db.sync({ alter: true })
+db.sync({ force: false, alter: true })
   .then(() => {
     server.listen(process.env.SERVER_PORT, () => console.log("serveur lance"));
   })

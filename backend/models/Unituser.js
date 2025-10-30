@@ -39,7 +39,12 @@ Admin.hasMany(Fournisseur, {
 Fournisseur.belongsTo(Admin, { foreignKey: "admin_id", as: "admin" });
 
 // Un administrateur peut gérer plusieurs inventaires (One-to-Many)
-Admin.hasMany(Inventaireadmin, { foreignKey: "admin_id", as: "inventaires" });
+Admin.hasMany(Inventaireadmin, {
+  foreignKey: "admin_id",
+  as: "inventaires",
+  onDelete: "SET NULL",
+  onUpdate: "CASCADE",
+});
 Inventaireadmin.belongsTo(Admin, { foreignKey: "admin_id", as: "admin" });
 
 // Un administrateur peut générer plusieurs rapports (One-to-Many)

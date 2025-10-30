@@ -2,11 +2,14 @@ import React, { useState } from "react";
 import "../../styles/adminkey.css";
 import Button from "../../components/Button";
 import { inventaire } from "../exportelt/Exportelt";
+import { toast } from "react-toastify";
+import axios from "../../pagePrivate/Utils";
 
 const Alert = () => {
   const [data, setData] = useState(
     inventaire.map((item) => ({
       id: item.id,
+      nomproduit: item.text,
       numserie: "00000",
       numstock: 1,
       dateperemption: "",
@@ -28,8 +31,43 @@ const Alert = () => {
     );
   };
 
-  const handlesave = () => {
+  const handlesave = async () => {
     console.log("Inventaire enregistré :", data);
+    //VERIFIONS SI au moins un des champs est vide
+    const dataform = data.some(
+      (item) =>
+        !item.nomproduit || // ✅ Ajouter cette vérification
+        !item.numserie ||
+        item.numstock === undefined ||
+        item.numstock === null ||
+        !item.dateperemption ||
+        item.perte === null ||
+        item.perte === undefined
+    );
+    if (dataform) {
+      toast.error(
+        "Veuillez remplir au moins les champs Numéro de série, Quantité produit en stock, Date de péremption et Pertes."
+      );
+      console.error("error", dataform);
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        `http://localhost:5000/inventaire`,
+        data
+      );
+      if (response.status === 200) {
+        toast.success("Inventaire enregistré!");
+      }
+    } catch (error) {
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Une erreur s'est produite.");
+        console.error(error);
+      }
+    }
     setData(
       inventaire.map((item) => ({
         id: item.id,

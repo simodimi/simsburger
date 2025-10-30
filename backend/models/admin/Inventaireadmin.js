@@ -9,17 +9,24 @@ const Inventaireadmin = sequelize.define("Inventaireadmin", {
   },
   productId: {
     type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  nomproduit: {
+    type: DataTypes.STRING,
     allowNull: false,
   },
   numserie: {
     type: DataTypes.STRING,
+    allowNull: false,
   },
   numstock: {
     type: DataTypes.INTEGER,
     defaultValue: 0,
+    allowNull: false,
   },
   dateperemption: {
     type: DataTypes.DATE, // Changé en DATE pour meilleure gestion
+    allowNull: false,
   },
   perte: {
     type: DataTypes.INTEGER,
@@ -27,13 +34,15 @@ const Inventaireadmin = sequelize.define("Inventaireadmin", {
   },
   commentaire: {
     type: DataTypes.TEXT,
+    allowNull: true,
   },
   admin_id: {
     type: DataTypes.INTEGER,
-    allowNull: false,
+    allowNull: true,
   },
   dateEnregistrement: {
     type: DataTypes.DATE,
+    allowNull: false,
     defaultValue: DataTypes.NOW,
   },
 });
