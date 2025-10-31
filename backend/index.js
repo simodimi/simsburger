@@ -8,6 +8,7 @@ const fournisseurRoutes = require("./routes/FournisseurRoute");
 const userRoutes = require("./routes/UserRoute");
 const InventaireRoutes = require("./routes/InventaireRoute");
 const ProductRoutes = require("./routes/ProductRoute");
+const MessageRoutes = require("./routes/SmsUserRoutes");
 
 //importer les modeles et les relations
 require("./models/Unituser");
@@ -34,6 +35,7 @@ app.use("/user", userRoutes);
 app.use("/uploads", express.static("uploads"));
 app.use("/inventaire", InventaireRoutes);
 app.use("/product", ProductRoutes);
+app.use("/message", MessageRoutes);
 //lancement serveur
 db.sync({ force: false, alter: true })
   .then(() => {

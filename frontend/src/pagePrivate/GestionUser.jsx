@@ -5,6 +5,7 @@ import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
+import axios from "../pagePrivate/Utils";
 
 const GestionUser = () => {
   const [smsUser, setSmsUser] = useState([]);
@@ -16,7 +17,7 @@ const GestionUser = () => {
   }, []);
 
   //  Écouter les changements du localStorage en temps réel
-  useEffect(() => {
+  /*useEffect(() => {
     const handleStorageChange = (e) => {
       if (e.key === "smsUser" && e.newValue) {
         try {
@@ -31,7 +32,7 @@ const GestionUser = () => {
 
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
+  }, []);*/
   const handleanswersms = (id) => {
     window.location.href = `mailto:${id}`;
   };
@@ -51,6 +52,18 @@ const GestionUser = () => {
     setReadSms(p);
     setOpen10(true);
   };
+  useEffect(() => {
+    const updating = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/message");
+        setSmsUser(response.data);
+      } catch (error) {
+        console.error("une erreur est survenue", error);
+      }
+    };
+    updating();
+  }, []);
+
   //FONCTION POUR REGROUPER LES MESSAGES PAR MOIS
   const groupSms = (sms) => {
     //trier les messages par date

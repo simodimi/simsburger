@@ -8,6 +8,7 @@ import bas from "../assets/icone/bas.png";
 import haut from "../assets/icone/haut.png";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import axios from "../pagePrivate/Utils";
 const About = ({ setsmsUser }) => {
   const navigate = useNavigate();
   const handleback = () => {
@@ -47,10 +48,23 @@ const About = ({ setsmsUser }) => {
     if (!emailRegex.test(formData.email_service)) {
       setmsgerror("Veuillez entrer une adresse email valide");
     }
-    if (formData.email_service && formData.messageService) {
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/message",
+        formData
+      );
+      if (response.status === 200) {
+        toast.success(
+          `${formData.email_service}, votre message a bien été envoyé`
+        );
+      }
+      setmsgerror("");
+      setFormData({ email_service: "", messageService: "" });
+    } catch (error) {
+      console.error("Erreur création message :", error);
+    }
+    /*   if (formData.email_service && formData.messageService) {
       toast.success("Votre message a bien été envoyé");
-      console.log("email:" + formData.email_service);
-      console.log("message:" + formData.messageService);
       //création message complet
       const newmessage = {
         id: Date.now(),
@@ -73,7 +87,7 @@ const About = ({ setsmsUser }) => {
       setFormData({ email_service: "", messageService: "" });
 
       return;
-    }
+    }*/
   };
   const handleTextChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
