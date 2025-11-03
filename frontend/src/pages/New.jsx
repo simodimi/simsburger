@@ -165,7 +165,7 @@ const New = ({
   const [drive, setdrive] = useState(false);
   //ouvrir la section livraison
   const handleDrive = () => {
-    if (isClosed) {
+    if (isClosed()) {
       setOpen5(true);
     } else {
       setdrive(!drive);
@@ -576,10 +576,18 @@ const New = ({
   };
   //heure de non prise des commande
   const isClosed = () => {
-    const currentHour = new Date().getHours();
-    return currentHour < 0 || currentHour >= 23;
+    const now = new Date();
+    const heurefr = now.toLocaleTimeString("fr-FR", {
+      timeZone: "Europe/Paris",
+      hour: "2-digit",
+      hour12: false,
+    });
+    // Nettoie la chaîne pour éviter espaces ou caractères spéciaux
+    const currentHour = parseInt(heurefr);
+    console.log(`Heure FR: ${currentHour}h`);
+    return currentHour < 9 || currentHour >= 23;
   };
-  //mis à jour de l'heure
+  //mis à jour de l'heures
   const [timer, setTimer] = useState(
     new Date().toLocaleTimeString("fr-FR", {
       hour: "2-digit",
@@ -1160,7 +1168,7 @@ const New = ({
               <p>Ton burger,Ton kiff,Ton Sim'sburger</p>
             </DialogContentText>
             <DialogContentText id="messageConfirm">
-              desolé,sims'burger à sommeil ,il se reveillera demain à 11h
+              desolé,sims'burger à sommeil ,il se reveillera demain à 09h
             </DialogContentText>
             <DialogContentText id="messageConfirm" color="#e31937">
               {timer}

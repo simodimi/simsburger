@@ -170,7 +170,13 @@ const Key = () => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="hour" />
                 <YAxis />
-                <Tooltip formatter={(value) => [`${value} €`, "Revenu"]} />
+                <Tooltip
+                  formatter={(value, name) => {
+                    if (name === "revenue") return [`${value} €`, "Revenu (€)"];
+                    if (name === "orders") return [value, "Commandes"];
+                    return [value, name];
+                  }}
+                />
                 <Legend />
                 <Bar dataKey="revenue" fill="#8884d8" name="Revenu (€)" />
                 <Bar dataKey="orders" fill="#82ca9d" name="Commandes" />
@@ -188,7 +194,13 @@ const Key = () => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="day" />
                 <YAxis />
-                <Tooltip formatter={(value) => [`${value} €`, "Revenu"]} />
+                <Tooltip
+                  formatter={(value, name) => {
+                    if (name === "revenue") return [`${value} €`, "Revenu (€)"];
+                    if (name === "orders") return [value, "Commandes"];
+                    return [value, name];
+                  }}
+                />
                 <Legend />
                 <Bar dataKey="revenue" fill="#FF8042" name="Revenu (€)" />
                 <Bar dataKey="orders" fill="#00C49F" name="Commandes" />
@@ -206,7 +218,13 @@ const Key = () => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="day" />
                 <YAxis />
-                <Tooltip formatter={(value) => [`${value} €`, "Revenu"]} />
+                <Tooltip
+                  formatter={(value, name) => {
+                    if (name === "revenue") return [`${value} €`, "Revenu (€)"];
+                    if (name === "orders") return [value, "Commandes"];
+                    return [value, name];
+                  }}
+                />
                 <Legend />
                 <Bar dataKey="revenue" fill="#8884d8" name="Revenu (€)" />
                 <Bar dataKey="orders" fill="#82ca9d" name="Commandes" />
