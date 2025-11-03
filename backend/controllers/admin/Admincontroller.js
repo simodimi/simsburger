@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const Mailjet = require("node-mailjet");
+const { NOEXPAND } = require("sequelize/lib/table-hints");
 
 //utilitaire pour l'envoi des mails
 const mailjet = new Mailjet({
@@ -108,7 +109,7 @@ const createAdmin = async (req, res) => {
     return res.status(500).json({ message: "une erreur est survenue" });
   }
 };
-const loginAdmin = async (req, res) => {
+/*const loginAdmin = async (req, res) => {
   try {
     const { adminemail, adminpassword } = req.body;
     if (!adminemail || !adminpassword) {
@@ -150,10 +151,63 @@ const loginAdmin = async (req, res) => {
     console.error("erreur lors de la connexion", error);
     return res.status(500).json({ message: "une erreur est survenue" });
   }
-};
+};*/
+const loginAdmin = async (req, res) => {
+  try {
+    const { adminemail, adminpassword } = req.body;
+    if (!adminemail || !adminpassword) {
+      return res
+        .status(400)
+        .json({ message: "tous les champs sont obligatoires" });
+    }
 
+    const user = await Admin.findOne({ where: { adminemail } });
+    if (!user) {
+      return res.status(404).json({ message: "utilisateur introuvable" });
+    }
+
+    if (!user.isactive) {
+      return res.status(403).json({
+        message:
+          "Votre compte n'est pas encore validé par le super administrateur.",
+      });
+    }
+
+    const passwordmatch = await bcrypt.compare(
+      adminpassword,
+      user.adminpassword
+    );
+    if (!passwordmatch) {
+      return res.status(401).json({ message: "mot de passe incorrect" });
+    }
+
+    const token = generateToken(user);
+
+    // Cookie options : secure en production, httpOnly, sameSite Strict
+    const cookieOptions = {
+      httpOnly: true,
+      secure: true, // true en prod (HTTPS)
+      sameSite: "None",
+      maxAge: 5 * 60 * 60 * 1000, // 5h
+      // domain: process.env.COOKIE_DOMAIN // optionnel si besoin
+    };
+
+    res.cookie("token", token, cookieOptions);
+
+    // Ne PAS renvoyer le token côté client. Renvoie uniquement les données utiles (sans password)
+    return res.status(200).json({
+      idadmin: user.idadmin,
+      adminemail: user.adminemail,
+      adminname: user.adminname,
+      role: user.role,
+    });
+  } catch (error) {
+    console.error("erreur lors de la connexion", error);
+    return res.status(500).json({ message: "une erreur est survenue" });
+  }
+};
 // Middleware de vérification du token
-const verifyToken = async (req, res, next) => {
+/*const verifyToken = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
@@ -179,7 +233,7 @@ const verifyToken = async (req, res, next) => {
     }
     return res.status(401).json({ message: "Token invalide" });
   }
-};
+};*/
 // Validation via token (clic dans l'email)
 const validateAdminByToken = async (req, res) => {
   try {
@@ -304,7 +358,7 @@ const updateAdmin = async (req, res) => {
   }
 };
 // Fonction pour vérifier la validité du token (route dédiée)
-const checkTokenValidity = async (req, res) => {
+/*const checkTokenValidity = async (req, res) => {
   try {
     // Si on arrive ici, le middleware verifyToken a déjà validé le token
     // Récupérer les données fraîches de l'admin
@@ -334,6 +388,34 @@ const checkTokenValidity = async (req, res) => {
       valid: false,
       message: "Erreur de vérification",
     });
+  }
+};*/
+// --- checkTokenValidity : renvoie les données admin fraîches ---
+const checkTokenValidity = async (req, res) => {
+  try {
+    // Ici verifyToken a déjà été exécuté (middleware), et req.admin est present
+    const admin = await Admin.findByPk(req.admin.idadmin, {
+      attributes: ["idadmin", "adminemail", "adminname", "role", "isactive"],
+    });
+    if (!admin || !admin.isactive) {
+      return res
+        .status(401)
+        .json({ valid: false, message: "Admin non valide" });
+    }
+    return res.status(200).json({
+      valid: true,
+      admin: {
+        idadmin: admin.idadmin,
+        adminemail: admin.adminemail,
+        adminname: admin.adminname,
+        role: admin.role,
+      },
+    });
+  } catch (error) {
+    console.error("checkTokenValidity error:", error);
+    return res
+      .status(500)
+      .json({ valid: false, message: "Erreur de vérification" });
   }
 };
 const forgotPassword = async (req, res) => {
@@ -462,6 +544,47 @@ const resetPassword = async (req, res) => {
       .json({ message: "Une erreur est survenue lors de la mise à jour" });
   }
 };
+const logoutAdmin = (req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "Strict",
+  });
+  return res.status(200).json({ message: "Déconnexion réussie" });
+};
+// --- MIDDLEWARE verifyToken : lit cookie httpOnly ---
+const verifyToken = async (req, res, next) => {
+  try {
+    const token = req.cookies?.token;
+    if (!token) {
+      return res.status(401).json({ message: "Token manquant" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Vérifier que l'admin existe toujours et est actif
+    const admin = await Admin.findByPk(decoded.idadmin);
+    if (!admin || !admin.isactive) {
+      return res.status(401).json({ message: "Admin non valide" });
+    }
+
+    // Attacher les infos utiles à req
+    req.admin = {
+      idadmin: admin.idadmin,
+      adminemail: admin.adminemail,
+      adminname: admin.adminname,
+      role: admin.role,
+    };
+
+    next();
+  } catch (error) {
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({ message: "Token expiré" });
+    }
+    console.error("verifyToken error:", error);
+    return res.status(401).json({ message: "Token invalide" });
+  }
+};
 module.exports = {
   loginAdmin,
   createAdmin,
@@ -477,4 +600,5 @@ module.exports = {
   forgotPassword,
   verifyCode,
   resetPassword,
+  logoutAdmin,
 };

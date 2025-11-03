@@ -11,7 +11,7 @@ const Orderitem = sequelize.define("Orderitem", {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
-  product_name: {
+  names: {
     type: DataTypes.STRING,
     allowNull: false,
   },
@@ -20,26 +20,50 @@ const Orderitem = sequelize.define("Orderitem", {
     allowNull: false,
     defaultValue: 1,
   },
-  unit_price: {
+  price: {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: false,
   },
-  is_custom: {
+  type: {
+    type: DataTypes.ENUM("sur place", "emporter", "livraison"),
+    allowNull: false,
+  },
+  isCustom: {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
   },
-  custom_data: {
+  removedItems: {
     type: DataTypes.JSON,
-    defaultValue: {},
+    defaultValue: [],
   },
-  menu_data: {
+  customItems: {
     type: DataTypes.JSON,
-    defaultValue: {},
+    defaultValue: [],
+  },
+  total_revenue: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true,
+  },
+  product_name: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  order_date: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
   },
   order_id: {
     // clé étrangère explicite
-    type: DataTypes.INTEGER,
+    type: DataTypes.STRING,
     allowNull: false,
+  },
+  createdAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
+  },
+  updatedAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
   },
 });
 

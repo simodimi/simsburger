@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import dayjs from "dayjs";
 import isoWeek from "dayjs/plugin/isoWeek";
+import axios from "../../pagePrivate/Utils";
 dayjs.extend(isoWeek);
 
 const Statistique = () => {
@@ -20,7 +21,7 @@ const Statistique = () => {
   const [weeklyTopBurgers, setWeeklyTopBurgers] = useState([]);
   const [monthlyTopBurgers, setMonthlyTopBurgers] = useState([]);
 
-  useEffect(() => {
+  /*useEffect(() => {
     const savedOrders = JSON.parse(localStorage.getItem("adminOrders")) || [];
     setOrders(savedOrders);
     computeStats(savedOrders);
@@ -36,6 +37,20 @@ const Statistique = () => {
 
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);*/
+  useEffect(() => {
+    const update = async () => {
+      try {
+        const responce = await axios.get("http://localhost:5000/orderitem");
+        setOrders(responce.data);
+        computeStats(responce.data);
+      } catch (error) {
+        console.error("une erreur est survenue", error);
+      }
+    };
+    update();
+    const interval = setInterval(update, 5000); // Mettre à jour toutes les 5 secondes
+    return () => clearInterval(interval);
   }, []);
 
   const computeStats = (data) => {
@@ -55,20 +70,14 @@ const Statistique = () => {
 
       // Compter par burger
       const burgerCount = {};
-      /* ordersInHour.forEach((o) => {
-        if (!burgerCount[o.burgerId])
-          burgerCount[o.burgerId] = { count: 0, revenue: 0 };
-        burgerCount[o.burgerId].count += 1;
-        burgerCount[o.burgerId].revenue += o.total;
-      });*/
 
       ordersInHour.forEach((o) => {
-        o.items.forEach((item) => {
-          const name = item.name || "Inconnu";
-          if (!burgerCount[name]) burgerCount[name] = { count: 0, revenue: 0 };
-          burgerCount[name].count += item.quantity;
-          burgerCount[name].revenue += item.price * item.quantity;
-        });
+        //o.items.forEach((item) => {
+        const name = o.names || "Inconnu";
+        if (!burgerCount[name]) burgerCount[name] = { count: 0, revenue: 0 };
+        burgerCount[name].count += o.quantity; // item.quantity;
+        burgerCount[name].revenue += o.total_revenue; // item.price * item.quantity;
+        // });
       });
 
       // Trouver le max
@@ -88,19 +97,13 @@ const Statistique = () => {
     // TOP 5 BURGERS DE LA SEMAINE
     const weeklyOrders = data.filter((o) => dayjs(o.date).isAfter(startOfWeek));
     const weeklyCount = {};
-    /* weeklyOrders.forEach((o) => {
-      if (!weeklyCount[o.burgerId])
-        weeklyCount[o.burgerId] = { count: 0, revenue: 0 };
-      weeklyCount[o.burgerId].count += 1;
-      weeklyCount[o.burgerId].revenue += o.total;
-    });*/
     weeklyOrders.forEach((o) => {
-      o.items.forEach((item) => {
-        const name = item.name || "Inconnu";
-        if (!weeklyCount[name]) weeklyCount[name] = { count: 0, revenue: 0 };
-        weeklyCount[name].count += item.quantity;
-        weeklyCount[name].revenue += item.price * item.quantity;
-      });
+      // o.items.forEach((item) => {
+      const name = o.names || "Inconnu";
+      if (!weeklyCount[name]) weeklyCount[name] = { count: 0, revenue: 0 };
+      weeklyCount[name].count += o.quantity; // item.quantity;
+      weeklyCount[name].revenue += o.total_revenue; // item.price * item.quantity;
+      // });
     });
     const weeklyTop = Object.entries(weeklyCount)
       .map(([burger, val]) => ({ burger, ...val }))
@@ -113,19 +116,13 @@ const Statistique = () => {
       dayjs(o.date).isAfter(startOfMonth)
     );
     const monthlyCount = {};
-    /*monthlyOrders.forEach((o) => {
-      if (!monthlyCount[o.burgerId])
-        monthlyCount[o.burgerId] = { count: 0, revenue: 0 };
-      monthlyCount[o.burgerId].count += 1;
-      monthlyCount[o.burgerId].revenue += o.total;
-    });*/
     monthlyOrders.forEach((o) => {
-      o.items.forEach((item) => {
-        const name = item.name || "Inconnu";
-        if (!monthlyCount[name]) monthlyCount[name] = { count: 0, revenue: 0 };
-        monthlyCount[name].count += item.quantity;
-        monthlyCount[name].revenue += item.price * item.quantity;
-      });
+      //  o.items.forEach((item) => {
+      const name = o.names || "Inconnu";
+      if (!monthlyCount[name]) monthlyCount[name] = { count: 0, revenue: 0 };
+      monthlyCount[name].count += o.quantity; // item.quantity;
+      monthlyCount[name].revenue += o.total_revenue; // item.price * item.quantity;
+      //   });
     });
     const monthlyTop = Object.entries(monthlyCount)
       .map(([burger, val]) => ({ burger, ...val }))

@@ -1,217 +1,159 @@
-import React, { useEffect, useState } from "react";
+// pages/LoginAdmin.jsx
+import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Button from "../components/Button";
 import logo from "../assets/logo/logo.png";
 import { toast } from "react-toastify";
 import "../styles/login.css";
-//import axios from "axios";
 import axios from "./Utils";
 import { useAuth } from "./AuthContext";
 
 const LoginAdmin = () => {
   const navigate = useNavigate();
-  const handleback = () => {
-    navigate(-1);
-  };
-  const { logout } = useAuth();
-  const { login: loginAdmin, isAuthenticated } = useAuth();
   const location = useLocation();
-  const [login, setlogin] = useState(location.state?.login || false);
-  const [login1, setlogin1] = useState(location.state?.login1 ?? true);
-  const [msgerror, setmsgerror] = useState(false);
-  const [loading, setloading] = useState(false);
-  const [adminData, setAdminData] = useState(location.state?.adminData || null); // Stocker les données du backend
-  const [msgerrortext, setmsgerrortext] = useState("erreur de connexion");
+  const { login, logout, admin, isAuthenticated } = useAuth();
+
   const [dataform, setdataform] = useState({
     adminemail: "",
     adminpassword: "",
   });
-
-  useEffect(() => {
-    // Si l'admin est déjà connecté, afficher la section "Bienvenue"
-    if (isAuthenticated) {
-      setlogin(true);
-      setlogin1(false);
-      const storedAdmin = localStorage.getItem("adminData");
-      if (storedAdmin) {
-        setAdminData(JSON.parse(storedAdmin));
-      }
-    } else {
-      // Sinon, afficher le formulaire de connexion
-      setlogin(false);
-      setlogin1(true);
-      setAdminData(null);
-    }
-  }, [isAuthenticated]);
-
-  useEffect(() => {
-    if (location.state?.login === true) {
-      setlogin(true);
-      setlogin1(false);
-      if (location.state?.adminData) {
-        setAdminData(location.state.adminData);
-      }
-    }
-  }, [location.state]);
+  const [loading, setloading] = useState(false);
+  const [msgerror, setmsgerror] = useState("");
 
   const handlechange = (e) => {
     setdataform({ ...dataform, [e.target.name]: e.target.value });
   };
+
+  const handlebackhome = async () => {
+    try {
+      // Appel correct : POST + withCredentials
+      await axios.post(
+        "http://localhost:5000/admin/logout",
+        {},
+        { withCredentials: true }
+      );
+      await logout();
+      toast.info("Déconnexion réussie !");
+      navigate("/");
+    } catch (error) {
+      console.error("Erreur de déconnexion :", error);
+      toast.error("Une erreur est survenue lors de la déconnexion");
+    }
+  };
+
   const handlesubmit = async (e) => {
     e.preventDefault();
-    setmsgerror(false);
-    setmsgerrortext(false);
-    setloading(true);
     if (!dataform.adminemail || !dataform.adminpassword) {
-      setmsgerror(true);
-      setmsgerrortext("Veuillez remplir tous les champs");
-      toast.error("Veuillez remplir tous les champs");
-      setloading(false);
-      return;
+      return toast.error("Veuillez remplir tous les champs");
     }
-
+    setloading(true);
     try {
-      const response = await axios.post(
-        "http://localhost:5000/admin/login",
-        dataform
-      );
-
-      if (response.status === 200) {
-        toast.success("Connexion réussie!");
-        loginAdmin(response.data, response.data.token);
-        setAdminData(response.data);
-        setlogin(true);
-        setlogin1(false);
-        setdataform({ adminemail: "", adminpassword: "" });
-        // Redirection
-        const from =
-          location.state?.from?.pathname || "/admin/dashboard/chiffre";
-        navigate(from, { replace: true });
-      }
-    } catch (error) {
-      if (error.response?.data?.message) {
-        setmsgerrortext(error.response.data.message);
-        toast.error(error.response.data.message);
-      } else {
-        setmsgerrortext("Erreur de connexion");
-        toast.error("Erreur de connexion");
-      }
-      setmsgerror(true);
+      await login(dataform.adminemail, dataform.adminpassword);
+      toast.success("Connexion réussie !");
+      const from = location.state?.from?.pathname || "/admin/dashboard/chiffre";
+      navigate(from, { replace: true });
+    } catch (err) {
+      const msg = err.response?.data?.message || "Erreur de connexion";
+      setmsgerror(msg);
+      toast.error(msg);
     } finally {
       setloading(false);
     }
   };
 
-  const handlebackhome = () => {
-    logout();
-    setlogin(false);
-    setlogin1(true);
-    setAdminData(null);
-    toast.info("Deconnexion reussie");
-  };
-  const [mail, setmail] = useState("");
+  if (isAuthenticated && admin) {
+    return (
+      <div className="shoppingfull">
+        <div className="loginMain">
+          <div className="LoginLogo">
+            <img src={logo} alt="" />
+            <p>
+              <span>Sim'sburger</span>
+            </p>
+          </div>
+
+          <div className="loginUser">
+            <h1>Bienvenue {admin.adminname}</h1>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "10px",
+                margin: "10px 0",
+              }}
+            >
+              <p>🫡 Hello Manager {admin.adminemail}.</p>
+              <p>Bienvenue sur votre espace de gestion.</p>
+              <p>Rôle : {admin.role}</p>
+
+              <Button className="nextbtn" onClick={handlebackhome}>
+                Se déconnecter
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="shoppingService">
       <div className="Service">
-        <Button
-          className="retourbtn"
-          onClick={() => {
-            handleback();
-          }}
-        >
-          <p>Retour</p>
-        </Button>
         <div className="shoppingfull">
           <div className="loginMain">
             <div className="LoginLogo">
-              <img src={logo} alt="" />
+              <img src={logo} alt="Logo" />
               <p>
                 <span>Sim'sburger</span>
               </p>
             </div>
 
-            {/*connection */}
-            {login1 && (
-              <div className="">
-                {msgerror && <p id="loginError">{msgerrortext}</p>}
-                <form onSubmit={handlesubmit}>
-                  <div className="ServiceInscription">
-                    <div className="ServiceInscriptionTitle">
-                      <p>Adresse email</p>
-                      <input
-                        type="email"
-                        name="adminemail"
-                        value={dataform.adminemail}
-                        onChange={handlechange}
-                        disabled={loading}
-                      />
-                    </div>
-                    <div className="ServiceInscriptionTitle">
-                      <p>Mot de passe</p>
-                      <input
-                        type="password"
-                        name="adminpassword"
-                        value={dataform.adminpassword}
-                        onChange={handlechange}
-                        disabled={loading}
-                      />
-                    </div>
-                    <div className="btnLogin">
-                      <Button
-                        type="submit"
-                        className="nextbtn"
-                        disabled={loading}
-                      >
-                        {loading ? "Connexion en cours..." : " Se connecter"}
-                      </Button>
-                    </div>
-                  </div>
-                </form>
-                <div className=" loginFooter">
-                  <p>
-                    vous n'avez pas un compte ?{" "}
-                    <Link
-                      to="/admin/inscriptionadmin"
-                      style={{ color: "#e31937" }}
-                    >
-                      Inscrivez-vous
-                    </Link>
-                  </p>
-                  <p>
-                    mot de passe oublie?{" "}
-                    <Link
-                      to="/admin/initialisationadmin"
-                      style={{ color: "blue" }}
-                    >
-                      Reinitialiser mot de passe
-                    </Link>
-                  </p>
-                </div>
-              </div>
-            )}
-            {login && adminData && (
-              <div className="loginUser">
-                <h1>Bienvenue {adminData.adminname}</h1>
-                <div
-                  className=""
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "10px",
-                    margin: "10px 0",
-                  }}
-                >
-                  <p>🫡 Hello Manager {adminData.adminemail}.</p>
-                  <p>🫡 Bienvenue sur votre espace de gestion.</p>
-                  <p>Rôle : {adminData.role}</p>
+            {msgerror && <p id="loginError">{msgerror}</p>}
 
-                  <Button className="nextbtn" onClick={handlebackhome}>
-                    {" "}
-                    se deconnecter
+            <form onSubmit={handlesubmit}>
+              <div className="ServiceInscription">
+                <div className="ServiceInscriptionTitle">
+                  <p>Adresse email</p>
+                  <input
+                    type="email"
+                    name="adminemail"
+                    value={dataform.adminemail}
+                    onChange={handlechange}
+                    disabled={loading}
+                  />
+                </div>
+                <div className="ServiceInscriptionTitle">
+                  <p>Mot de passe</p>
+                  <input
+                    type="password"
+                    name="adminpassword"
+                    value={dataform.adminpassword}
+                    onChange={handlechange}
+                    disabled={loading}
+                  />
+                </div>
+                <div className="btnLogin">
+                  <Button type="submit" className="nextbtn" disabled={loading}>
+                    {loading ? "Connexion en cours..." : "Se connecter"}
                   </Button>
                 </div>
               </div>
-            )}
+            </form>
+
+            <div className="loginFooter">
+              <p>
+                Pas de compte ?{" "}
+                <Link to="/admin/inscriptionadmin" style={{ color: "#e31937" }}>
+                  Inscrivez-vous
+                </Link>
+              </p>
+              <p>
+                Mot de passe oublié ?{" "}
+                <Link to="/admin/initialisationadmin" style={{ color: "blue" }}>
+                  Réinitialiser
+                </Link>
+              </p>
+            </div>
           </div>
         </div>
       </div>

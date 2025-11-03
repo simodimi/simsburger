@@ -36,52 +36,95 @@ Admin.hasMany(Fournisseur, {
   as: "fournisseurs",
   onDelete: "SET NULL",
 });
-Fournisseur.belongsTo(Admin, { foreignKey: "admin_id", as: "admin" });
+Fournisseur.belongsTo(Admin, {
+  foreignKey: "admin_id",
+  as: "admin",
+  onDelete: "SET NULL", // Ajouter ici aussi
+});
 
 // Un administrateur peut gérer plusieurs inventaires (One-to-Many)
 Admin.hasMany(Inventaireadmin, {
   foreignKey: "admin_id",
   as: "inventaires",
   onDelete: "SET NULL",
-  onUpdate: "CASCADE",
 });
-Inventaireadmin.belongsTo(Admin, { foreignKey: "admin_id", as: "admin" });
+Inventaireadmin.belongsTo(Admin, {
+  foreignKey: "admin_id",
+  as: "admin",
+  onDelete: "SET NULL", // Ajouter ici aussi
+});
 
 // Un administrateur peut générer plusieurs rapports (One-to-Many)
-Admin.hasMany(Rapport, { foreignKey: "admin_id", as: "rapports" });
-Rapport.belongsTo(Admin, { foreignKey: "admin_id", as: "admin" });
+Admin.hasMany(Rapport, {
+  foreignKey: "admin_id",
+  as: "rapports",
+  onDelete: "CASCADE", // Changer en CASCADE ou garder SET NULL si admin_id est nullable
+});
+Rapport.belongsTo(Admin, {
+  foreignKey: "admin_id",
+  as: "admin",
+  onDelete: "CASCADE", // Doit correspondre
+});
 
-// Un administrateur peut avoir plusieurs statistiques (One-to-Many)
-Admin.hasMany(Statistique, { foreignKey: "admin_id", as: "statistiques" });
-Statistique.belongsTo(Admin, { foreignKey: "admin_id", as: "admin" });
+// CORRECTION : Un administrateur peut avoir plusieurs statistiques (One-to-Many)
+Admin.hasMany(Statistique, {
+  foreignKey: "admin_id",
+  as: "statistiques",
+  onDelete: "SET NULL", // Si admin_id est nullable
+});
+Statistique.belongsTo(Admin, {
+  foreignKey: "admin_id",
+  as: "admin",
+  onDelete: "SET NULL", // Doit correspondre
+});
 
 // === RELATIONS CROISÉES ===
 // Une commande peut générer plusieurs statistiques (One-to-Many)
-Order.hasMany(Statistique, { foreignKey: "order_id", as: "statistiques" });
-Statistique.belongsTo(Order, { foreignKey: "order_id", as: "order" });
+Order.hasMany(Statistique, {
+  foreignKey: "order_id",
+  as: "statistiques",
+  onDelete: "SET NULL", // Si order_id est nullable
+});
+Statistique.belongsTo(Order, {
+  foreignKey: "order_id",
+  as: "order",
+  onDelete: "SET NULL", // Doit correspondre
+});
 
 // Un produit admin peut avoir plusieurs statistiques (One-to-Many)
 Productadmin.hasMany(Statistique, {
   foreignKey: "product_id",
   as: "statistiques",
+  onDelete: "SET NULL", // Si product_id est nullable
 });
 Statistique.belongsTo(Productadmin, {
   foreignKey: "product_id",
   as: "product",
+  onDelete: "SET NULL", // Doit correspondre
 });
 
 // Un utilisateur peut avoir plusieurs statistiques (One-to-Many)
-User.hasMany(Statistique, { foreignKey: "user_id", as: "statistiques" });
-Statistique.belongsTo(User, { foreignKey: "user_id", as: "user" });
+User.hasMany(Statistique, {
+  foreignKey: "user_id",
+  as: "statistiques",
+  onDelete: "SET NULL", // Si user_id est nullable
+});
+Statistique.belongsTo(User, {
+  foreignKey: "user_id",
+  as: "user",
+  onDelete: "SET NULL", // Doit correspondre
+});
 
 // Un produit admin peut être dans plusieurs articles de commande (One-to-Many)
 Productadmin.hasMany(Orderitem, {
   foreignKey: "product_id",
   as: "orderItems",
+  onDelete: "SET NULL", // ou "CASCADE" selon votre besoin
 });
 Orderitem.belongsTo(Productadmin, {
   foreignKey: "product_id",
   as: "product",
+  onDelete: "SET NULL", // Doit correspondre
 });
 
 const models = {

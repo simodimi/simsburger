@@ -1,4 +1,4 @@
-import axios from "axios";
+/*import axios from "axios";
 
 // Intercepteur pour gérer les erreurs d'authentification
 axios.interceptors.response.use(
@@ -18,5 +18,12 @@ axios.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+export default axios;*/
+// Utils.js
+import axios from "axios";
+
+axios.defaults.baseURL = "http://localhost:5000";
+axios.defaults.withCredentials = true; // important
 
 export default axios;

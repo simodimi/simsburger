@@ -3,17 +3,48 @@ import "../styles/shopping.css";
 import Button from "../components/Button";
 import jsPDF from "jspdf";
 import logo from "../assets/logo/logo.png";
+import axios from "../pagePrivate/Utils";
 
-const Liste = ({ data }) => {
-  // S'assurer que data est toujours un tableau
-  const orders = Array.isArray(data) ? data : [];
+const Liste = () => {
+  const [orders, setOrders] = useState([]);
   const [search, setSearch] = useState("");
-  const [filteredData, setFilteredData] = useState(orders);
+  const [filteredData, setFilteredData] = useState([]);
 
-  //mettre à jour le tableau de filtrer quand data change
   useEffect(() => {
-    setFilteredData(orders);
-  }, [orders]);
+    const update = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/orderitem");
+        console.log("📥 Données reçues:", response.data); // 🔥 DEBUG
+
+        // 🔥 REGROUPER LES ITEMS PAR COMMANDE COTÉ FRONTEND
+        const commandesRegroupees = response.data.reduce((acc, item) => {
+          const commandeId = item.order_id;
+
+          if (!acc[commandeId]) {
+            acc[commandeId] = {
+              id: commandeId,
+              date: item.createdAt || new Date(), // Utiliser createdAt comme date
+              items: [],
+            };
+          }
+
+          acc[commandeId].items.push(item);
+          return acc;
+        }, {});
+
+        const result = Object.values(commandesRegroupees);
+        console.log("🔄 Commandes regroupées:", result); // 🔥 DEBUG
+
+        setFilteredData(result);
+        setOrders(result);
+      } catch (error) {
+        console.error("❌ Erreur:", error);
+      }
+    };
+    update();
+    const interval = setInterval(update, 5000); // Mettre à jour toutes les 5 secondes
+    return () => clearInterval(interval);
+  }, []);
 
   const handleSearch = (e) => {
     setSearch(e.target.value);
@@ -22,10 +53,8 @@ const Liste = ({ data }) => {
   const handleEnter = (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
-
       const query = search.trim().toLowerCase();
 
-      // Filtrage : par numéro de commande (id)
       const result = orders.filter((commande) =>
         commande.id.toString().toLowerCase().includes(query)
       );
@@ -33,14 +62,15 @@ const Liste = ({ data }) => {
       setFilteredData(result);
     }
   };
-  //telecharger les facture
+
+  // 🔥 CORRIGER handleDownloadReceipt POUR LES NOUVELLES DONNÉES
   const handleDownloadReceipt = (commande) => {
     const doc = new jsPDF();
 
-    // === HEADER ===
+    // Header
     const img = new Image();
     img.src = logo;
-    doc.addImage(img, "PNG", 160, 10, 40, 25); // logo en haut à droite
+    doc.addImage(img, "PNG", 160, 10, 40, 25);
 
     doc.setFontSize(18);
     doc.text("Sim'sBurger", 20, 20);
@@ -54,7 +84,7 @@ const Liste = ({ data }) => {
       50
     );
 
-    // === ARTICLES ===
+    // Articles
     let y = 70;
     doc.setFontSize(12);
     doc.text("Articles :", 20, y);
@@ -64,16 +94,18 @@ const Liste = ({ data }) => {
 
     commande.items.forEach((item) => {
       const prixItem = (item.price * item.quantity).toFixed(2);
-      doc.text(`${item.name} x${item.quantity} — ${prixItem} €`, 20, y);
+      doc.text(`${item.names} x${item.quantity} — ${prixItem} €`, 20, y);
       y += 8;
       total += item.price * item.quantity;
 
-      // ✅ Ajouts personnalisés
+      // Ajouts personnalisés
       if (item.isCustom && item.customItems) {
+        // 🔥 CORRECTION : customItems est déjà un tableau d'objets
         item.customItems.forEach((customItem) => {
+          const supplementQty = customItem.quantity || 1;
           doc.text(
-            `   + ${customItem.text} x${customItem.quantity} — +${(
-              customItem.prix * customItem.quantity
+            `   + ${customItem.text} — +${(
+              customItem.prix * supplementQty
             ).toFixed(2)} €`,
             25,
             y
@@ -82,10 +114,10 @@ const Liste = ({ data }) => {
         });
       }
 
-      // ✅ Retraits
+      // Retraits
       if (item.removedItems && item.removedItems.length > 0) {
         item.removedItems.forEach((ri) => {
-          doc.text(`   - ${ri.text}`, 25, y);
+          doc.text(`   - ${ri.text} (retiré)`, 25, y);
           y += 6;
         });
       }
@@ -96,48 +128,16 @@ const Liste = ({ data }) => {
       }
     });
 
-    // === INFOS LIVRAISON ===
-    const isLivraison = commande.items.some((i) => i.type === "livraison");
-    if (isLivraison) {
-      const fraisLivraison = commande.deliveryFee || 0;
-      const livraison = commande.livraison || {};
-
-      y += 10;
-      doc.setFontSize(13);
-      doc.text("Informations de livraison :", 20, y);
-      y += 8;
-      doc.setFontSize(12);
-      doc.text(`Lieu du restaurant : Luminy, Marseille`, 20, y);
-      y += 8;
-      doc.text(
-        `Destination client : ${livraison.adresse || "Adresse non indiquée"}`,
-        20,
-        y
-      );
-      y += 8;
-      doc.text(
-        `Téléphone client : ${livraison.telephone || "Non renseigné"}`,
-        20,
-        y
-      );
-      y += 8;
-      doc.text(`Frais de livraison : ${fraisLivraison.toFixed(2)} €`, 20, y);
-      total += fraisLivraison;
-      y += 8;
-    }
-
-    // === TOTAL ===
+    // Total
     y += 10;
     doc.setFontSize(13);
     doc.text(`Total à payer : ${total.toFixed(2)} €`, 20, y);
-
     y += 20;
-    doc.setFontSize(12);
-    doc.text("Merci pour votre commande ! ", 20, y);
+    doc.text("Merci pour votre commande !", 20, y);
 
-    // === TÉLÉCHARGEMENT ===
     doc.save(`facture-${commande.id}.pdf`);
   };
+
   return (
     <div className="CartemainGeneral">
       <div className="searchGestionProduct">
@@ -148,7 +148,7 @@ const Liste = ({ data }) => {
             value={search}
             onChange={handleSearch}
             onKeyDown={handleEnter}
-            placeholder="Écrivez le nom du produit et tapez sur Enter"
+            placeholder="Rechercher par numéro de commande (tapez Enter)"
           />
         </div>
       </div>
@@ -159,12 +159,7 @@ const Liste = ({ data }) => {
         </p>
       ) : (
         filteredData.map((commande) => (
-          <div
-            key={commande.id}
-            style={{
-              padding: "20px",
-            }}
-          >
+          <div key={commande.id} style={{ padding: "20px" }}>
             <div
               className="shoppingfull"
               style={{
@@ -197,69 +192,60 @@ const Liste = ({ data }) => {
                   </tr>
                 </thead>
                 <tbody className="tbodyadmin">
-                  {Array.isArray(commande.items) &&
-                    commande.items.map((item, iIndex) => (
-                      <tr id="btnligne" key={`${commande.id}-${iIndex}`}>
-                        <td>
-                          {new Date(commande.date).toLocaleString("fr-FR", {
-                            weekday: "long",
-                            day: "numeric",
-                            month: "long",
-                            year: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            second: "2-digit",
-                          })}
-                        </td>
-
-                        <td>
-                          {item.name}
-                          {item.isCustom && (
-                            <span style={{ color: "blue", fontWeight: "bold" }}>
-                              (personnalisé)
-                            </span>
-                          )}
-                          {item.isCustom && (
-                            <div
-                              style={{ fontSize: "0.85rem", marginTop: "5px" }}
-                            >
-                              {/* Ajouts */}
-                              {item.customItems &&
-                                item.customItems?.length > 0 && (
-                                  <div style={{ color: "green" }}>
-                                    <strong>Ajouts :</strong>
-                                    {item.customItems.map((ci, idx) => (
-                                      <div key={idx}>
-                                        + {ci.text}{" "}
-                                        {ci.quantity > 1
-                                          ? `x${ci.quantity}`
-                                          : ""}
-                                        (+{(ci.price * ci.quantity).toFixed(2)}{" "}
-                                        €)
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
-
-                              {/* Retraits */}
-                              {item.removedItems &&
-                                item.removedItems.length > 0 && (
-                                  <div style={{ color: "red" }}>
-                                    <strong>Retraits :</strong>
-                                    {item.removedItems.map((ri, idx) => (
-                                      <div key={idx}>- {ri.text}</div>
-                                    ))}
-                                  </div>
-                                )}
-                            </div>
-                          )}
-                        </td>
-                        <td>{item.quantity}</td>
-                        <td>{(item.price * item.quantity).toFixed(2)} €</td>
-                        <td>{commande.id}</td>
-                        <td>{item.type}</td>
-                      </tr>
-                    ))}
+                  {commande.items.map((item, iIndex) => (
+                    <tr id="btnligne" key={`${commande.id}-${iIndex}`}>
+                      <td>
+                        {new Date(commande.date).toLocaleString("fr-FR", {
+                          weekday: "long",
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </td>
+                      <td>
+                        {item.names}
+                        {item.isCustom && (
+                          <span style={{ color: "blue", fontWeight: "bold" }}>
+                            (personnalisé)
+                          </span>
+                        )}
+                        {item.isCustom && (
+                          <div
+                            style={{ fontSize: "0.85rem", marginTop: "5px" }}
+                          >
+                            {/* Ajouts */}
+                            {item.customItems &&
+                              item.customItems.length > 0 && (
+                                <div style={{ color: "green" }}>
+                                  <strong>Ajouts :</strong>
+                                  {item.customItems.map((ci, idx) => (
+                                    <div key={idx}>
+                                      + {ci.text} (+{ci.prix.toFixed(2)} €)
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            {/* Retraits */}
+                            {item.removedItems &&
+                              item.removedItems.length > 0 && (
+                                <div style={{ color: "red" }}>
+                                  <strong>Retraits :</strong>
+                                  {item.removedItems.map((ri, idx) => (
+                                    <div key={idx}>- {ri.text}</div>
+                                  ))}
+                                </div>
+                              )}
+                          </div>
+                        )}
+                      </td>
+                      <td>{item.quantity}</td>
+                      <td>{(item.price * item.quantity).toFixed(2)} €</td>
+                      <td>{commande.id}</td>
+                      <td>{item.type}</td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>

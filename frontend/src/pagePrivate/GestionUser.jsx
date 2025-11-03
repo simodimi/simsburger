@@ -15,24 +15,6 @@ const GestionUser = () => {
     const saved = localStorage.getItem("smsUser");
     if (saved) setSmsUser(JSON.parse(saved));
   }, []);
-
-  //  Écouter les changements du localStorage en temps réel
-  /*useEffect(() => {
-    const handleStorageChange = (e) => {
-      if (e.key === "smsUser" && e.newValue) {
-        try {
-          const updatedMessages = JSON.parse(e.newValue);
-          setSmsUser(updatedMessages);
-          console.log("📩 Mise à jour des messages reçue !");
-        } catch (err) {
-          console.error("Erreur de parsing storage:", err);
-        }
-      }
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);*/
   const handleanswersms = (id) => {
     window.location.href = `mailto:${id}`;
   };
@@ -62,6 +44,8 @@ const GestionUser = () => {
       }
     };
     updating();
+    const intervalId = setInterval(updating, 5000);
+    return () => clearInterval(intervalId);
   }, []);
 
   //FONCTION POUR REGROUPER LES MESSAGES PAR MOIS

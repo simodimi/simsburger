@@ -42,8 +42,8 @@ const getAllMessage = async (req, res) => {
         date: {
           [Op.gte]: dateLimite,
         },
-        order: [["date", "DESC"]],
       },
+      order: [["date", "DESC"]],
     });
     return res.status(200).json(messages);
   } catch (error) {

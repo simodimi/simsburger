@@ -12,6 +12,8 @@ import DialogContentText from "@mui/material/DialogContentText";
 import { jsPDF } from "jspdf";
 import liv from "../assets/logo/liv.png";
 import sleep from "../assets/icone/sleep.gif";
+import axios from "../pagePrivate/Utils";
+
 const New = ({
   setusercommande,
   codereduction,
@@ -104,7 +106,6 @@ const New = ({
     // Si extraPrice est déjà calculé, l'utiliser directement
     if (item.extraPrice !== undefined) {
       total += item.extraPrice;
-      console.log("ExtraPrice déjà calculé:", item.extraPrice);
     }
     // Sinon, calculer les suppléments
     else if (item.isCustom && item.customItems?.length > 0) {
@@ -118,8 +119,6 @@ const New = ({
         }
       });
     }
-
-    console.log("TOTAL FINAL:", total);
     return total;
   };
 
@@ -205,51 +204,77 @@ const New = ({
     const updatedOrders = [...existingOrders, orderData];
     localStorage.setItem("adminOrders", JSON.stringify(updatedOrders));
   };
-  const handleClicknext1 = () => {
+  const handleClicknext1 = async () => {
     setOpen1(true);
     const orderData = {
       id: orderId,
       //items: cart,
       date: new Date().toISOString(),
-
       total: total,
       items: cart.map((item) => ({
-        name: item.text,
+        product_id: item.id,
+        names: item.text,
         quantity: item.quantity,
         price: item.prix,
         type: "sur place",
         isCustom: item.isCustom,
         removedItems: item.removedItems,
         customItems: item.customItems,
+        order_id: orderId,
+        total_revenue: item.prix * item.quantity, // Calculé ici
+        product_name: item.text, // Pour cohérence
+        order_date: new Date().toISOString(),
       })),
     };
-    setAllOrders((prev) => [...prev, orderData]);
-    setusercommande((prev) => [...prev, orderData]);
-    updateStats(orderData);
+    try {
+      const response = await axios.post("http://localhost:5000/orderitem", {
+        items: orderData.items,
+      });
+      {
+        if (response.status === 200) {
+          console.log(response.data.message);
+        }
+      }
+    } catch (error) {
+      console.error("une erreur est survenue", error);
+    }
   };
-  const handleClicknext2 = () => {
+  const handleClicknext2 = async () => {
     setOpen2(true);
     const orderData = {
       id: orderId,
       //items: cart,
       date: new Date().toISOString(),
-
       total: total,
       items: cart.map((item) => ({
-        name: item.text,
+        product_id: item.id,
+        names: item.text,
         quantity: item.quantity,
         price: item.prix,
         type: "emporter",
         isCustom: item.isCustom,
-        customItems: item.customItems,
         removedItems: item.removedItems,
+        customItems: item.customItems,
+        order_id: orderId,
+        total_revenue: item.prix * item.quantity, // Calculé ici
+        product_name: item.text, // Pour cohérence
+        order_date: new Date().toISOString(),
       })),
     };
-    setAllOrders((prev) => [...prev, orderData]);
-    setusercommande((prev) => [...prev, orderData]);
-    updateStats(orderData);
+    try {
+      const response = await axios.post("http://localhost:5000/orderitem", {
+        items: orderData.items,
+      });
+      {
+        if (response.status === 200) {
+          console.log(response.data.message);
+        }
+      }
+    } catch (error) {
+      console.error("une erreur est survenue", error);
+    }
   };
-  const handleClicknext3 = () => {
+  const handleClicknext3 = async () => {
     setOpen3(true);
     const orderData = {
       id: orderId,
@@ -261,18 +286,32 @@ const New = ({
       },
       total: total + deliveryFee,
       items: cart.map((item) => ({
-        name: item.text,
+        product_id: item.id,
+        names: item.text,
         quantity: item.quantity,
         price: item.prix,
         type: "livraison",
         isCustom: item.isCustom,
         removedItems: item.removedItems,
         customItems: item.customItems,
+        order_id: orderId,
+        total_revenue: item.prix * item.quantity, // Calculé ici
+        product_name: item.text, // Pour cohérence
+        order_date: new Date().toISOString(),
       })),
     };
-    setAllOrders((prev) => [...prev, orderData]);
-    setusercommande((prev) => [...prev, orderData]);
-    updateStats(orderData);
+    try {
+      const response = await axios.post("http://localhost:5000/orderitem", {
+        items: orderData.items,
+      });
+      {
+        if (response.status === 200) {
+          console.log(response.data.message);
+        }
+      }
+    } catch (error) {
+      console.error("une erreur est survenue", error);
+    }
   };
 
   const handleClose = () => {
@@ -538,7 +577,7 @@ const New = ({
   //heure de non prise des commande
   const isClosed = () => {
     const currentHour = new Date().getHours();
-    return currentHour < 11 || currentHour >= 23;
+    return currentHour < 0 || currentHour >= 23;
   };
   //mis à jour de l'heure
   const [timer, setTimer] = useState(

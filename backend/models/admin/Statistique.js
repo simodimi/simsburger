@@ -15,6 +15,10 @@ const Statistiques = sequelize.define("Statistiques", {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  prixUnitaire: {
+    type: DataTypes.FLOAT,
+    defaultValue: 0,
+  },
   quantiteVendue: {
     type: DataTypes.INTEGER,
     defaultValue: 0,
@@ -29,7 +33,7 @@ const Statistiques = sequelize.define("Statistiques", {
   },
   admin_id: {
     type: DataTypes.INTEGER,
-    allowNull: false,
+    allowNull: true,
   },
   order_id: {
     type: DataTypes.INTEGER,
