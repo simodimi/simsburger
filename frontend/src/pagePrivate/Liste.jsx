@@ -24,6 +24,7 @@ const Liste = () => {
             acc[commandeId] = {
               id: commandeId,
               date: item.createdAt || new Date(), // Utiliser createdAt comme date
+              type: item.type, //stockage du type de commande
               items: [],
             };
           }
@@ -189,6 +190,10 @@ const Liste = () => {
                     <th>Prix</th>
                     <th>Numéro de commande</th>
                     <th>Nature commande</th>
+                    {/* Ajouts */}
+                    {commande.type === "livraison" && <th>prix livraison</th>}
+                    {commande.type === "livraison" && <th>Adresse</th>}
+                    {commande.type === "livraison" && <th>Téléphone</th>}
                   </tr>
                 </thead>
                 <tbody className="tbodyadmin">
@@ -244,6 +249,14 @@ const Liste = () => {
                       <td>{(item.price * item.quantity).toFixed(2)} €</td>
                       <td>{commande.id}</td>
                       <td>{item.type}</td>
+                      {/* Ajouts */}
+                      {commande.type === "livraison" && (
+                        <td>{item.prixLivraison.toFixed(2)} €</td>
+                      )}
+                      {commande.type === "livraison" && <td>{item.adresse}</td>}
+                      {commande.type === "livraison" && (
+                        <td>{item.telephone}</td>
+                      )}
                     </tr>
                   ))}
                 </tbody>

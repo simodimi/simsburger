@@ -112,7 +112,7 @@ app.use("/message", MessageRoutes);
 app.use("/statistique", StatistiqueRoutes);
 app.use("/orderitem", OrderitemRoutes);
 
-db.sync()
+db.sync() // alter: true pour mettre à jour la base de données
   .then(() => {
     const PORT = process.env.SERVER_PORT || 5000;
     server.listen(PORT, () => console.log(`serveur lance sur ${PORT}`));

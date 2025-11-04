@@ -35,9 +35,11 @@ const User = sequelize.define("User", {
     type: DataTypes.DECIMAL(10, 2),
     defaultValue: 0,
   },
-  pointsrestant: {
-    type: DataTypes.DECIMAL(10, 2),
-    defaultValue: 0,
+  valuecode: {
+    type: DataTypes.STRING(5),
+    allowNull: true,
+    defaultValue: null,
+    validate: { len: [5, 5] },
   },
 });
 module.exports = User;

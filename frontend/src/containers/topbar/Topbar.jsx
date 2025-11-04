@@ -10,10 +10,13 @@ import parametre from "../../assets/logo/parametre.png";
 import "../../styles/topbar.css";
 import men from "../../assets/icone/men.png";
 import { ProductContext } from "../../components/ProductContext";
+import { useAuth } from "../../pages/AuthContextUser";
+import axios from "axios";
 const Topbar = () => {
   const navigate = useNavigate();
   const { count } = useContext(ProductContext);
   const [affichetopbar, setaffichetopbar] = useState(false);
+  const { user } = useAuth();
   const handleclick = () => {
     setaffichetopbar(!affichetopbar);
   };
@@ -65,7 +68,7 @@ const Topbar = () => {
           <Link to="/connecter">
             <img src={connecter} alt="" />
           </Link>
-          <p>se connecter</p>
+          <p>{user ? user.nameuser : "se connecter"}</p>
         </div>
         <div className="TopbarIcon">
           <Link to="/parametre">

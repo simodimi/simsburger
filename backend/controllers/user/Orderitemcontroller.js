@@ -26,6 +26,9 @@ const createOrderitem = async (req, res) => {
           total_revenue: totalRevenue,
           product_name: item.names, // Même chose que names pour cohérence
           order_date: new Date(),
+          adresse: item.adresse,
+          prixLivraison: item.prixLivraison,
+          telephone: item.telephone,
         });
       })
     );

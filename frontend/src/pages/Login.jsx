@@ -10,38 +10,45 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import { toast } from "react-toastify";
+import { useAuth } from "./AuthContextUser";
+import axios from "axios";
+import { use } from "react";
 
-const Login = ({
-  usercommande,
-  setusercommande,
-  setcodereduction,
-  pointsUtilises,
-  setPointsUtilises,
-  login2,
-  usernamens,
-}) => {
+const Login = () => {
   const navigate = useNavigate();
   const handleback = () => navigate(-1);
-  const [login, setlogin] = useState(false);
+  const [login2, setlogin] = useState(false);
   const [login1, setlogin1] = useState(true);
   const [msgerror, setmsgerror] = useState(false);
   const [msgerrortext, setmsgerrortext] = useState("erreur de connexion");
   const [arrow, setarrow] = useState(false);
+  const [usercommande, setusercommande] = useState([]);
   const [showtable, setshowtable] = useState(false);
+  const { login, logout, user, isAuthenticated } = useAuth();
+  const [loading, setloading] = useState(false);
   const [open10, setOpen10] = useState(false);
   const [indexToDelete, setIndexToDelete] = useState(null);
-  const [pointsCumules, setPointsCumules] = useState(
-    JSON.parse(localStorage.getItem("pointsCumules")) || 0
-  );
-  useEffect(() => {
-    if (login2) {
-      setlogin(true);
-      setlogin1(false);
-    }
-  }, [login2]);
 
-  // Calcul des points disponibles (toujours à jour via les props)
-  const pointsDisponibles = pointsCumules - pointsUtilises;
+  const [pointsCumules, setPointsCumules] = useState(0);
+  const [pointsUtilises, setPointsUtilises] = useState(0);
+  const [pointsDisponibles, setPointsDisponibles] = useState(0);
+
+  useEffect(() => {
+    const fetchPoints = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/user/points", {
+          withCredentials: true,
+        });
+        setPointsCumules(Number(res.data.pointscumules));
+        setPointsUtilises(Number(res.data.pointsutilises));
+        setPointsDisponibles(Number(res.data.pointsrestant));
+      } catch (error) {
+        console.error("Erreur lors de la récupération des points :", error);
+      }
+    };
+    fetchPoints();
+  }, []);
+  //pointsDisponibles = pointsCumules - pointsUtilises;
   // toggle de l’historique
   const handleClick = () => {
     setarrow((prev) => !prev);
@@ -61,19 +68,21 @@ const Login = ({
   const nouveauxPoints = totalGlobal / 5;
 
   // mise à jour des points cumulés seulement si le total augmente
-  useEffect(() => {
+  /*  useEffect(() => {
     if (nouveauxPoints > pointsCumules) {
       setPointsCumules(nouveauxPoints);
       localStorage.setItem("pointsCumules", JSON.stringify(nouveauxPoints));
     }
-  }, [nouveauxPoints]);
+  }, [nouveauxPoints]);*/
 
   const handleClose = () => {
     setOpen10(false);
     setIndexToDelete(null);
   };
 
-  const handleConfirmDelete = () => {
+  // Suppression de la commande et dans le backend
+  useEffect(() => {});
+  const handleConfirmDelete = async () => {
     if (indexToDelete !== null) {
       const commandeASupprimer = usercommande[indexToDelete];
       if (commandeASupprimer.pointsUtilises) {
@@ -86,7 +95,12 @@ const Login = ({
           Math.max(0, prev - commandeASupprimer.pointsGagnes)
         );
       }
-      setusercommande((prev) => prev.filter((_, i) => i !== indexToDelete));
+      try {
+        axios.delete(`http://localhost:5000/orderitem/${id}`);
+        setusercommande((prev) => prev.filter((_, i) => i !== indexToDelete));
+      } catch (error) {
+        console.error("Erreur lors de la suppression de la commande", error);
+      }
     }
     handleClose();
   };
@@ -106,21 +120,39 @@ const Login = ({
       setCodeError("");
     }
   }, [valuecode]);
-  const handleCode = () => {
+  const handleCode = async () => {
     if (valuecode.length !== 5) {
       return;
     }
-
-    setCodeError("code enregistré");
-    setvaluecode(valuecode);
-    setcodereduction(valuecode);
-    console.log("Code de fidélité enregistré :", valuecode);
-    setCode(false);
+    try {
+      await axios.post(
+        "http://localhost:5000/user/updatecode",
+        {
+          valuecode,
+        },
+        { withCredentials: true }
+      );
+      setCodeError("code enregistré");
+      toast.success("code enregistré");
+      setvaluecode(valuecode);
+      setcodereduction(valuecode);
+      setCode(false);
+    } catch (error) {
+      console.error("Erreur lors de l'enregistrement du code", error);
+    }
   };
-  const handlechange = () => {
-    setCode(true);
-    setvaluecode("");
-    setCodeError("");
+  const handlechange = async () => {
+    try {
+      await axios.post("http://localhost:5000/user/updatecode", {
+        valuecode,
+      });
+      toast.success("code enregistré");
+      setCode(true);
+      setvaluecode("");
+      setCodeError("");
+    } catch (error) {
+      console.error("Erreur lors de l'enregistrement du code", error);
+    }
   };
   const [datauser, setdatauser] = useState({
     mailuser: "",
@@ -130,7 +162,24 @@ const Login = ({
   const handlechanges = (e) => {
     setdatauser({ ...datauser, [e.target.name]: e.target.value });
   };
-  const handleSubmit = (e) => {
+  const handleLogout = async () => {
+    try {
+      // Appel correct : POST + withCredentials
+      await axios.post(
+        "http://localhost:5000/user/logout",
+        {},
+        { withCredentials: true }
+      );
+      await logout();
+      toast.info("Déconnexion réussie !");
+      setlogin(false);
+      setlogin1(true);
+    } catch (error) {
+      console.error("Erreur de déconnexion :", error);
+      toast.error("Une erreur est survenue lors de la déconnexion");
+    }
+  };
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!datauser.mailuser || !datauser.passworduser) {
       setmsgerror(true);
@@ -138,24 +187,55 @@ const Login = ({
       toast.error("Veuillez remplir tous les champs");
       return;
     }
-    if (datauser.mailuser && datauser.passworduser) {
+    setloading(true);
+    try {
+      await login(datauser.mailuser && datauser.passworduser);
+      toast.success("Connexion réussie !");
+      const from = location.state?.from?.pathname || "/carte";
+      navigate(from, { replace: true });
       setmsgerror(false);
       setmsgerrortext(false);
-      setlogin(true);
       setlogin1(false);
-      toast.success("Connexion reussie!");
+      setlogin(true);
       setdatauser({ mailuser: "", passworduser: "" });
-      console.log("email:" + datauser.mailuser);
-      console.log("password:" + datauser.passworduser);
-
-      return;
+    } catch (err) {
+      const msg = err.response?.data?.message || "Erreur de connexion";
+      setmsgerror(msg);
+      toast.error(msg);
+    } finally {
+      setloading(false);
     }
   };
-  const handleLogout = () => {
-    setlogin(false);
-    setlogin1(true);
-    toast.success("Deconnexion reussie");
-  };
+
+  useEffect(() => {
+    const update = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/orderitem");
+        // 🔥 REGROUPER LES ITEMS PAR COMMANDE COTÉ FRONTEND
+        const commandesRegroupees = response.data.reduce((acc, item) => {
+          const commandeId = item.order_id;
+          if (!acc[commandeId]) {
+            acc[commandeId] = {
+              id: commandeId,
+              date: item.createdAt || new Date(), // Utiliser createdAt comme date
+              type: item.type, //stockage du type de commande
+              items: [],
+            };
+          }
+          acc[commandeId].items.push(item);
+          return acc;
+        }, {});
+
+        const result = Object.values(commandesRegroupees);
+        setusercommande(result);
+      } catch (error) {
+        console.error("Erreur:", error);
+      }
+    };
+    update();
+    const interval = setInterval(update, 5000); // Mettre à jour toutes les 5 secondes
+    return () => clearInterval(interval);
+  }, []);
   return (
     <div className="shoppingService">
       <div className="Service">
@@ -198,7 +278,7 @@ const Login = ({
                     </div>
                     <div className="btnLogin">
                       <Button type="submit" className="nextbtn">
-                        Se connecter
+                        {loading ? "Connexion en cours..." : "Se connecter"}
                       </Button>
                     </div>
                   </div>
@@ -221,9 +301,9 @@ const Login = ({
             )}
 
             {/* --- SECTION UTILISATEUR CONNECTÉ --- */}
-            {login && (
+            {isAuthenticated && user && login2 && (
               <div className="loginUser">
-                <p>hello {usernamens}</p>
+                <p>hello {user.username}</p>
                 <div
                   style={{
                     display: "flex",
@@ -238,7 +318,7 @@ const Login = ({
                   </p>
                   <p>1 bitSim's = 5 euros dépensés</p>
                   <p>
-                    Points de fidélité cumulés :{" "}
+                    Points de fidélité cumulés :
                     <strong>{pointsCumules.toFixed(2)}</strong> bitSim's
                   </p>
                   <p>
@@ -246,7 +326,7 @@ const Login = ({
                     bitSim's
                   </p>
                   <p>
-                    Points de fidélité disponibles :{" "}
+                    Points de fidélité disponibles :
                     <strong>
                       {(pointsDisponibles > 0 ? pointsDisponibles : 0).toFixed(
                         2
@@ -262,7 +342,7 @@ const Login = ({
                     <p style={{ color: "red" }}>{codeError} </p>
                   )}
                   <input
-                    type="number"
+                    type="text"
                     name=""
                     style={{ width: "270px" }}
                     placeholder="veuillez saisir 5 chiffres"
@@ -312,6 +392,11 @@ const Login = ({
                               <th>Prix</th>
                               <th>N° commande</th>
                               <th>Points fidélité</th>
+                              {
+                                (usercommande.type = "livraison" && (
+                                  <th>Adresse de livraison</th>
+                                ))
+                              }
                               <th>Supprimer</th>
                             </tr>
                           </thead>
@@ -360,6 +445,11 @@ const Login = ({
                                     )}{" "}
                                     bitSim's
                                   </td>
+                                  {
+                                    (usercommande.type = "livraison" && (
+                                      <td>{item.adresse}</td>
+                                    ))
+                                  }
                                   <td id="btnpaiement">
                                     <Button
                                       className="rejectbtn"

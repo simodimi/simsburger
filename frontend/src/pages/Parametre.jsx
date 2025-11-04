@@ -9,9 +9,12 @@ import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
+import { useAuth } from "./AuthContextUser";
+import axios from "axios";
 
 const Parametre = () => {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const handleback = () => {
     navigate(-1);
   };
@@ -40,11 +43,20 @@ const Parametre = () => {
     setOpen11(false);
   };
   const handlelock = () => {
-    navigate("/connecter");
+    logout();
   };
-  const handlelock1 = () => {
-    navigate("/inscription");
+  const handlelock1 = async () => {
+    try {
+      await axios.delete(`http://localhost:5000/user/${user.iduser}`, {
+        withCredentials: true,
+      });
+      await logout();
+      navigate("/inscription");
+    } catch (error) {
+      console.log(error);
+    }
   };
+  if (!user) return <p>Chargement...</p>;
   return (
     <div className="shoppingService">
       <div className="Service">
@@ -69,8 +81,8 @@ const Parametre = () => {
             <div className="parametreinfo">
               <h1>informations</h1>
               <div className="parametreUser">
-                <p>nom: DIMITRI</p>
-                <p>email: 0K7kS@example.com</p>
+                <p>nom: {user.nameuser}</p>
+                <p>email: {user.mailuser}</p>
               </div>
             </div>
             <div className="parametreinfo">

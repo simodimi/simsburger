@@ -48,6 +48,19 @@ const Orderitem = sequelize.define("Orderitem", {
     type: DataTypes.STRING,
     allowNull: true,
   },
+  adresse: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  prixLivraison: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true,
+    defaultValue: 0,
+  },
+  telephone: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
   order_date: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW,

@@ -592,7 +592,6 @@ module.exports = {
   getAllAdmin,
   getAdmin,
   updateAdmin,
-  loginAdmin,
   getAdminStatus,
   validateAdminByToken,
   verifyToken,

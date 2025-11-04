@@ -13,6 +13,7 @@ import { jsPDF } from "jspdf";
 import liv from "../assets/logo/liv.png";
 import sleep from "../assets/icone/sleep.gif";
 import axios from "../pagePrivate/Utils";
+import { useAuth } from "../pages/AuthContextUser";
 
 const New = ({
   setusercommande,
@@ -29,9 +30,23 @@ const New = ({
   const { cart, removeFromCart, setCart, setcount } =
     useContext(ProductContext);
   const [error, seterror] = useState(false);
+  const { isAuthenticated } = useAuth();
   const [msgerror, setmsgerror] = useState("");
   // État LOCAL pour la réduction en cours
   const [pointsAReduire, setPointsAReduire] = useState(0);
+  // Si user non connecté → affiche le message open4
+  const handleProtectedAction = (callback) => {
+    if (!isAuthenticated) {
+      setOpen4(true); // ouvre le dialog "Veuillez vous connecter"
+      return;
+    }
+    callback(); // sinon exécute la vraie action
+  };
+  useEffect(() => {
+    if (isAuthenticated) {
+      setOpen4(false);
+    }
+  }, [isAuthenticated]);
   const getLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -135,7 +150,7 @@ const New = ({
   );
   const pointsDisponibles = pointsCumules - (pointsUtilises || 0);
   //gestion de la réduction
-  const handlereduction = (e) => {
+  const handlereduction = async (e) => {
     const code = e.target.value.trim();
     if (code.length === 0) {
       seterror(false);
@@ -144,20 +159,25 @@ const New = ({
       setPointsAReduire(0);
       return;
     }
-    if (code === codereduction) {
-      seterror(true);
-      setmsgerror("Code de réduction correcte");
-
-      // Calcul des points disponibles
-      const pointsMaxAReduire = Math.min(pointsDisponibles, soustotal);
-
-      setPointsAReduire(pointsMaxAReduire);
-      settotal(Math.max(0, soustotal - pointsMaxAReduire));
-    } else {
-      seterror(true);
-      setmsgerror("Code de réduction invalide");
-      setPointsAReduire(0);
-      settotal(soustotal);
+    try {
+      const response = await axios.get(`http://localhost:5000/user/updatecode`);
+      const codereduction = response.data;
+      if (code === codereduction) {
+        seterror(true);
+        setmsgerror("Code de réduction correcte");
+        toast.success("Code de réduction correcte");
+        // Calcul des points disponibles
+        const pointsMaxAReduire = Math.min(pointsDisponibles, soustotal);
+        setPointsAReduire(pointsMaxAReduire);
+        settotal(Math.max(0, soustotal - pointsMaxAReduire));
+      } else {
+        seterror(true);
+        setmsgerror("Code de réduction invalide");
+        setPointsAReduire(0);
+        settotal(soustotal);
+      }
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -238,6 +258,18 @@ const New = ({
     } catch (error) {
       console.error("une erreur est survenue", error);
     }
+    try {
+      await axios.post(
+        "http://localhost:5000/user/updatePoints",
+        {
+          pointsGagnes: total / 5, // exemple : 1 point gagné par 5€ dépensés
+          pointsDepenses: pointsAReduire, // points utilisés pour réduction
+        },
+        { withCredentials: true }
+      );
+    } catch (err) {
+      console.error("Erreur mise à jour des points :", err);
+    }
   };
   const handleClicknext2 = async () => {
     setOpen2(true);
@@ -273,6 +305,18 @@ const New = ({
     } catch (error) {
       console.error("une erreur est survenue", error);
     }
+    try {
+      await axios.post(
+        "http://localhost:5000/user/updatePoints",
+        {
+          pointsGagnes: total / 5, // exemple : 1 point gagné par 5€ dépensés
+          pointsDepenses: pointsAReduire, // points utilisés pour réduction
+        },
+        { withCredentials: true }
+      );
+    } catch (err) {
+      console.error("Erreur mise à jour des points :", err);
+    }
   };
   const handleClicknext3 = async () => {
     setOpen3(true);
@@ -298,6 +342,10 @@ const New = ({
         total_revenue: item.prix * item.quantity, // Calculé ici
         product_name: item.text, // Pour cohérence
         order_date: new Date().toISOString(),
+        //ajout
+        adresse: `${formValues.numerovoie} ${formValues.nomrue}, ${formValues.ville}`,
+        prixLivraison: deliveryFee,
+        telephone: formValues.phone,
       })),
     };
     try {
@@ -312,6 +360,18 @@ const New = ({
     } catch (error) {
       console.error("une erreur est survenue", error);
     }
+    try {
+      await axios.post(
+        "http://localhost:5000/user/updatePoints",
+        {
+          pointsGagnes: total / 5, // exemple : 1 point gagné par 5€ dépensés
+          pointsDepenses: pointsAReduire, // points utilisés pour réduction
+        },
+        { withCredentials: true }
+      );
+    } catch (err) {
+      console.error("Erreur mise à jour des points :", err);
+    }
   };
 
   const handleClose = () => {
@@ -322,6 +382,7 @@ const New = ({
     setOpen31(false);
     setOpen3(false);
     setOpen5(false);
+    setOpen4(false);
   };
   const handleClose1 = () => {
     setOpen1(false);
@@ -424,7 +485,13 @@ const New = ({
     doc.text(`Sous-total : ${soustotal.toFixed(2)} €`, 20, y + 10);
     doc.text(`Réduction : -${reduction.toFixed(2)} €`, 20, y + 20);
     if (drive) {
-      doc.text(`Frais de livraison : ${deliveryFee.toFixed(2)} €`, 20, y + 30);
+      doc.text(`numéro de telephone : ${formValues.phone}`, 20, y + 30);
+      doc.text(
+        `adresse de livraison : ${formValues.nomrue} ${formValues.numerovoie}, ${formValues.ville}`,
+        20,
+        y + 40
+      );
+      doc.text(`Frais de livraison : ${deliveryFee.toFixed(2)} €`, 20, y + 50);
     }
     doc.text(
       `Total payé : ${finalTotal.toFixed(2)} €`,
@@ -767,7 +834,7 @@ const New = ({
                   <div className="AccountUser">
                     <p>Réduction :</p>
                     <input
-                      type="text"
+                      type="number"
                       name=""
                       placeholder="code pour utiliser vos points"
                       onChange={handlereduction}
@@ -779,15 +846,22 @@ const New = ({
                   <p>{total.toFixed(2)} €</p>
                 </div>
                 <div className="AccountContainer">
-                  <Button className="rejectbtn" onClick={handleClickOpen}>
+                  <Button
+                    className="rejectbtn"
+                    onClick={() => handleProtectedAction(handleClickOpen)}
+                  >
                     sur place
                   </Button>
-                  <Button className="nextbtn" onClick={handleEmporter}>
-                    {" "}
+                  <Button
+                    className="nextbtn"
+                    onClick={() => handleProtectedAction(handleEmporter)}
+                  >
                     Emporter
                   </Button>
-                  <Button className="nextbtn" onClick={handleDrive}>
-                    {" "}
+                  <Button
+                    className="nextbtn"
+                    onClick={() => handleProtectedAction(handleDrive)}
+                  >
                     Livraison
                   </Button>
                 </div>

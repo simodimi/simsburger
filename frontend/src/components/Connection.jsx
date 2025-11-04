@@ -6,21 +6,23 @@ import "../styles/login.css";
 import juste from "../assets/administrateur/true.png";
 import faux from "../assets/administrateur/cancel.png";
 import { toast } from "react-toastify";
+import axios from "axios";
 
-const Connection = ({ setlogin2, setusernamens }) => {
+const Connection = () => {
   const navigate = useNavigate();
   const handleback = () => {
     navigate(-1);
   };
   const [msgerror, setmsgerror] = useState(false);
   const [msgerrortext, setmsgerrortext] = useState("erreur de connexion");
+  const [loading, setloading] = useState(false);
 
-  const handleopenPage = () => {
+  /*const handleopenPage = () => {
     navigate("/connecter");
     if (setlogin2) {
       setlogin2(true);
     }
-  };
+  };*/
 
   const [verification, setverification] = useState({
     verify1: false,
@@ -69,7 +71,7 @@ const Connection = ({ setlogin2, setusernamens }) => {
       passwordverification(e.target.value);
     }
   };
-  const handlesubmit = (e) => {
+  const handlesubmit = async (e) => {
     e.preventDefault();
     if (
       !dataform.mailuser ||
@@ -95,19 +97,48 @@ const Connection = ({ setlogin2, setusernamens }) => {
       setmsgerrortext("Les mots de passes ne sont pas identiques");
       return;
     }
-    if (
-      dataform.mailuser &&
-      dataform.nameuser &&
-      dataform.passworduser === dataform.passwordconfirmuser
-    ) {
-      setmsgerror(false);
-      setmsgerrortext(false);
-      toast.success(`Vous êtes inscrit ${dataform.nameuser}`);
-      handleopenPage();
-      if (setusernamens) {
-        setusernamens(dataform.nameuser);
+    setloading(true);
+    try {
+      //envoi des données vers le backend
+      const reponse = await axios.post(
+        "http://localhost:5000/user/inscription",
+        dataform
+      );
+      if (reponse.status === 201) {
+        toast.success(`inscription reussie ${dataform.nameuser}`);
+        const iduser = reponse.data.iduser; //storer l'id de l'admin
+        navigate("/carte/");
+        //démarrrer le polling pour verifier la validation
+        startStatusPolling(iduser);
+        setdataform({
+          nameuser: "",
+          mailuser: "",
+          passworduser: "",
+          passwordconfirmuser: "",
+        });
+        setverification({
+          verify1: false,
+          verify2: false,
+          verify3: false,
+          verify4: false,
+          verify5: false,
+        });
+        setcontrainte(false);
+        setmsgerror(false);
+        setmsgerrortext(false);
       }
-      return;
+    } catch (error) {
+      //afficher les messages d'erreur du backend
+      if (error.response?.data?.message) {
+        setmsgerror(true);
+        setmsgerrortext(error.response.data.message);
+        toast.error(error.response.data.message);
+        console.error("une erreur est survenue lors de l'inscription", error);
+      } else {
+        console.error("une erreur est survenue lors de l'inscription", error);
+      }
+    } finally {
+      setloading(false);
     }
   };
   const passwordverification = (password) => {
@@ -201,7 +232,7 @@ const Connection = ({ setlogin2, setusernamens }) => {
                   )}
                   <div className="btnLogin">
                     <Button type="submit" className="nextbtn">
-                      S'inscrire
+                      {loading ? "Envoi en cours..." : "S'inscrire"}
                     </Button>
                   </div>
                 </div>

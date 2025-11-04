@@ -8,6 +8,7 @@ import Stepper from "@mui/material/Stepper";
 import Step from "@mui/material/Step";
 import StepLabel from "@mui/material/StepLabel";
 import Typography from "@mui/material/Typography";
+import axios from "../pagePrivate/Utils";
 
 const Init = () => {
   const navigate = useNavigate();
@@ -19,8 +20,152 @@ const Init = () => {
   //gestion renitialisation
   const steps = ["Adresse email", "consulter vos mails", "Mot de passe"];
   const [activeStep, setActiveStep] = React.useState(0);
-  const handleNext = () => {
-    setActiveStep((prevActiveStep) => prevActiveStep + 1);
+
+  const [dataform, setdataform] = useState({
+    mailuser: "",
+    numeroverificationmail: "",
+    passworduser: "",
+    passwordconfirmuser: "",
+  });
+  const handleNext = async () => {
+    // setActiveStep((prevActiveStep) => prevActiveStep + 1);
+    //premier bouton suivant
+    if (activeStep === 0) {
+      if (!dataform.mailuser) {
+        setmsgerror(true);
+        setmsgerrortext("Veuillez remplir le champ email");
+        toast.error("Veuillez remplir tous les champs");
+        setActiveStep(0);
+        return;
+      }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(dataform.mailuser)) {
+        setmsgerror(true);
+        setmsgerrortext("adresse email non valide");
+        toast.error("adresse email non valide");
+        setActiveStep(0);
+        return;
+      }
+      try {
+        const response = await axios.post(
+          "http://localhost:5000/user/forgotpassword",
+          { mailuser: dataform.mailuser }
+        );
+        if (response.status === 200) {
+          setmsgerror(true);
+          setmsgerrortext("");
+          toast.success(response.data.message);
+          setActiveStep((prev) => prev + 1);
+        }
+      } catch (error) {
+        if (error.response?.data?.message) {
+          setmsgerrortext(error.response.data.message);
+          toast.error(error.response.data.message);
+        } else {
+          console.error(
+            "une erreur est survenue lors de la vérification de l'email",
+            error
+          );
+        }
+        setmsgerror(true);
+      }
+    }
+    if (activeStep === 1) {
+      if (!dataform.numeroverificationmail) {
+        setmsgerror(true);
+        setmsgerrortext(
+          "Veuillez remplir votre numero de verification reçu par mail"
+        );
+        toast.error("Veuillez remplir le numero de verification");
+        setActiveStep(1);
+        return;
+      }
+      try {
+        const response = await axios.post(
+          "http://localhost:5000/user/verifycode",
+          {
+            mailuser: dataform.mailuser,
+            code: dataform.numeroverificationmail,
+          }
+        );
+
+        if (response.status === 200) {
+          toast.success(response.data.message);
+          setActiveStep(2);
+          setmsgerror(false);
+          setmsgerrortext("");
+        }
+      } catch (error) {
+        toast.error(error.response?.data?.message || "Code invalide ou expiré");
+        setmsgerror(true);
+        setmsgerrortext(
+          error.response?.data?.message || "Code invalide ou expiré"
+        );
+        setActiveStep(1);
+      }
+    }
+
+    if (activeStep === 2) {
+      if (!dataform.passworduser || !dataform.passwordconfirmuser) {
+        setmsgerror(true);
+        setmsgerrortext("Veuillez remplir tous les champs");
+        toast.error("Veuillez remplir tous les champs");
+        setActiveStep(2);
+        return;
+      }
+      if (dataform.passworduser !== dataform.passwordconfirmuser) {
+        setmsgerror(true);
+        setmsgerrortext("Les mots de passes ne sont pas identiques");
+        toast.error("Les mots de passes ne sont pas identiques");
+        setActiveStep(2);
+        return;
+      }
+      const regexpassword =
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
+
+      if (!regexpassword.test(dataform.passworduser)) {
+        setmsgerror(true);
+        setmsgerrortext(
+          "Le mot de passe doit contenir au moins 8 caractères, une lettre majuscule, une lettre minuscule, un chiffre et un caractère special."
+        );
+        toast.error(
+          "Le mot de passe doit contenir au moins 8 caractères, une lettre majuscule, une lettre minuscule, un chiffre et un caractère special."
+        );
+        setActiveStep(2);
+        return;
+      }
+      try {
+        // Appel à ton backend pour mettre à jour le mot de passe
+        const response = await axios.post(
+          "http://localhost:5000/user/resetpassword",
+          {
+            mailuser: dataform.mailuser,
+            passworduser: dataform.passworduser,
+          }
+        );
+
+        if (response.status === 200) {
+          toast.success(response.data.message);
+          setActiveStep((prev) => prev + 1); // passe à l’étape suivante
+          setmsgerror(false);
+          setmsgerrortext("");
+        }
+      } catch (error) {
+        toast.error(
+          error.response?.data?.message ||
+            "Erreur lors de la mise à jour du mot de passe"
+        );
+        setmsgerror(true);
+        setmsgerrortext(
+          error.response?.data?.message ||
+            "Erreur lors de la mise à jour du mot de passe"
+        );
+        setActiveStep(2);
+      }
+    }
+  };
+  const handlechange = (e) => {
+    setdataform({ ...dataform, [e.target.name]: e.target.value });
   };
 
   const handleBack = () => {
@@ -29,6 +174,8 @@ const Init = () => {
     if (activeStep === 3) {
       //supprimer bouton retour
     }
+    setmsgerror(false);
+    setmsgerrortext("");
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
   };
 
@@ -90,7 +237,13 @@ const Init = () => {
                     {activeStep === 0 && (
                       <div className="ServiceInscriptionTitle">
                         <p>Adresse email</p>
-                        <input type="email" placeholder="Entrez votre email" />
+                        <input
+                          type="email"
+                          placeholder="Entrez votre email"
+                          name="adminemail"
+                          value={dataform.mailuser}
+                          onChange={handlechange}
+                        />
                       </div>
                     )}
                     {activeStep === 1 && (
@@ -98,21 +251,36 @@ const Init = () => {
                         <p>
                           Entrer votre numéro de vérification de votre email
                         </p>
-                        <input type="text" />
+                        <input
+                          type="text"
+                          name="numeroverificationmail"
+                          value={dataform.numeroverificationmail}
+                          onChange={handlechange}
+                        />
                       </div>
                     )}
                     {activeStep === 2 && (
                       <div className="">
                         <div className="ServiceInscriptionTitle">
                           <p>Entrer votre nouveau mot de passe</p>
-                          <input type="password" />
+                          <input
+                            type="password"
+                            name="adminpassword"
+                            value={dataform.passworduser}
+                            onChange={handlechange}
+                          />
                         </div>
                         <div
                           className="ServiceInscriptionTitle"
                           style={{ marginTop: "20px" }}
                         >
                           <p>Confirmer votre mot de passe</p>
-                          <input type="password" />
+                          <input
+                            type="password"
+                            name="adminpasswordconfirm"
+                            value={dataform.passwordconfirmuser}
+                            onChange={handlechange}
+                          />
                         </div>
                       </div>
                     )}
