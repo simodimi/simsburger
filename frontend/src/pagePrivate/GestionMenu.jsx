@@ -46,7 +46,9 @@ const GestionMenu = () => {
       );
 
       if (response.status === 200) {
-        toast.success("Produits initialisés en base !");
+        toast.success("Produits initialisés en base !", {
+          toastId: "initProducts",
+        });
         console.log(response.data.message);
       }
     } catch (error) {

@@ -7,6 +7,7 @@ import juste from "../assets/administrateur/true.png";
 import faux from "../assets/administrateur/cancel.png";
 import { toast } from "react-toastify";
 import axios from "axios";
+import { useAuth } from "../pages/AuthContextUser";
 
 const Connection = () => {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ const Connection = () => {
   const [msgerror, setmsgerror] = useState(false);
   const [msgerrortext, setmsgerrortext] = useState("erreur de connexion");
   const [loading, setloading] = useState(false);
+  const { login } = useAuth();
 
   /*const handleopenPage = () => {
     navigate("/connecter");
@@ -106,6 +108,12 @@ const Connection = () => {
       );
       if (reponse.status === 201) {
         toast.success(`inscription reussie ${dataform.nameuser}`);
+        // CONNECTER AUTOMATIQUEMENT APRÈS L'INSCRIPTION
+        try {
+          await login(dataform.mailuser, dataform.passworduser);
+        } catch (error) {
+          console.error("Erreur de connexion automatique:", error);
+        }
         const iduser = reponse.data.iduser; //storer l'id de l'admin
         navigate("/carte/");
         //démarrrer le polling pour verifier la validation
@@ -140,6 +148,10 @@ const Connection = () => {
     } finally {
       setloading(false);
     }
+  };
+  const startStatusPolling = (iduser) => {
+    // Implémentation de la vérification périodique du statut
+    console.log("Polling started for user:", iduser);
   };
   const passwordverification = (password) => {
     setcontrainte(true);

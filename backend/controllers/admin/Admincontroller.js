@@ -186,7 +186,7 @@ const loginAdmin = async (req, res) => {
     // Cookie options : secure en production, httpOnly, sameSite Strict
     const cookieOptions = {
       httpOnly: true,
-      secure: true, // true en prod (HTTPS)
+      secure: false, // true en prod (HTTPS)
       sameSite: "None",
       maxAge: 5 * 60 * 60 * 1000, // 5h
       // domain: process.env.COOKIE_DOMAIN // optionnel si besoin

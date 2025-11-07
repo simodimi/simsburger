@@ -6,14 +6,43 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import axios from "../pagePrivate/Utils";
+import { io } from "socket.io-client";
 
 const GestionUser = () => {
   const [smsUser, setSmsUser] = useState([]);
+  const [socket, setSocket] = useState(null);
 
   //  Charger au démarrage
-  useEffect(() => {
+  /* useEffect(() => {
     const saved = localStorage.getItem("smsUser");
     if (saved) setSmsUser(JSON.parse(saved));
+  }, []);*/
+  //mis a jour à l'instant
+  useEffect(() => {
+    // Initialiser la connexion Socket.io
+    const newSocket = io("http://localhost:5000", {
+      withCredentials: true,
+    });
+
+    setSocket(newSocket);
+
+    // Rejoindre la room des messages
+    newSocket.emit("join_messages_room");
+
+    // Écouter les mises à jour de sms en temps réel
+    newSocket.on("new_message", (data) => {
+      setSmsUser((prev) => [data, ...prev]); //ajouter les nouveaux messages au début du tableau
+    });
+
+    // Gestion des erreurs
+    newSocket.on("connect_error", (error) => {
+      console.error("❌ Erreur connexion Socket.io:", error);
+    });
+
+    return () => {
+      newSocket.emit("leave_messages_room");
+      newSocket.disconnect();
+    };
   }, []);
   const handleanswersms = (id) => {
     window.location.href = `mailto:${id}`;
@@ -44,8 +73,6 @@ const GestionUser = () => {
       }
     };
     updating();
-    const intervalId = setInterval(updating, 5000);
-    return () => clearInterval(intervalId);
   }, []);
 
   //FONCTION POUR REGROUPER LES MESSAGES PAR MOIS
@@ -71,57 +98,63 @@ const GestionUser = () => {
       <div className="searchGestionProduct">
         <h5>Liste des Messages des clients</h5>
       </div>
-      <div
-        className="shoppingfull "
-        style={{
-          maxHeight: "fit-content",
-          padding: "0px 20px 50px 20px",
-        }}
-      >
-        {Object.entries(groupSms(smsUser)).map(([mois, messages]) => (
-          <div key={mois} style={{ marginBottom: "30px" }}>
-            <h3
-              style={{
-                textTransform: "capitalize",
-                fontWeight: "bold",
-                color: "#e31937",
-                marginBottom: "10px",
-              }}
-            >
-              📅 {mois}
-            </h3>
-            {messages.map((item) => (
-              <div
-                className=" messageTitleUser"
-                key={item.id}
-                onClick={() => handleClick(item)}
+      {smsUser.length === 0 ? (
+        <div className="nothingsms">
+          <p>Aucun nouveau message...</p>
+        </div>
+      ) : (
+        <div
+          className="shoppingfull "
+          style={{
+            maxHeight: "fit-content",
+            padding: "0px 20px 50px 20px",
+          }}
+        >
+          {Object.entries(groupSms(smsUser)).map(([mois, messages]) => (
+            <div key={mois} style={{ marginBottom: "30px" }}>
+              <h3
+                style={{
+                  textTransform: "capitalize",
+                  fontWeight: "bold",
+                  color: "#e31937",
+                  marginBottom: "10px",
+                }}
               >
-                <p style={{ textAlign: "justify", padding: "10px 0px" }}>
-                  {item.email_service}
-                  <span style={{ marginLeft: "50px" }}>
-                    {new Date(item.date).toLocaleString()}{" "}
-                  </span>
-                </p>
-                <p
-                  className="messageuser"
-                  style={{ textAlign: "justify", padding: "10px 0px" }}
+                📅 {mois}
+              </h3>
+              {messages.map((item) => (
+                <div
+                  className=" messageTitleUser"
+                  key={item.id}
+                  onClick={() => handleClick(item)}
                 >
-                  {item.messageService}
-                </p>
-                <Button
-                  className="retourbtn"
-                  onClick={(e) => {
-                    e.stopPropagation(); //empêcher d'ouvrir le dialog
-                    handleanswersms(item.email_service);
-                  }}
-                >
-                  Répondre au message par mail
-                </Button>
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
+                  <p style={{ textAlign: "justify", padding: "10px 0px" }}>
+                    {item.email_service}
+                    <span style={{ marginLeft: "50px" }}>
+                      {new Date(item.date).toLocaleString()}{" "}
+                    </span>
+                  </p>
+                  <p
+                    className="messageuser"
+                    style={{ textAlign: "justify", padding: "10px 0px" }}
+                  >
+                    {item.messageService}
+                  </p>
+                  <Button
+                    className="retourbtn"
+                    onClick={(e) => {
+                      e.stopPropagation(); //empêcher d'ouvrir le dialog
+                      handleanswersms(item.email_service);
+                    }}
+                  >
+                    Répondre au message par mail
+                  </Button>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
       {open10 && readSms && (
         <Dialog open={open10} onClose={handleClose} className="custom-dialog">
           <DialogContent>

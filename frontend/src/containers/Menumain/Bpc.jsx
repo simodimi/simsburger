@@ -1,12 +1,51 @@
 import { bpc } from "../exportelt/Exportelt";
 import ScrollPage from "../../components/ScrollPage";
 import React, { useEffect, useState } from "react";
+import { io } from "socket.io-client";
 import axios from "../../pagePrivate/Utils";
 
 const Bpc = () => {
   const [bpcData, setBpcData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [socket, setSocket] = useState(null);
 
+  useEffect(() => {
+    // Initialiser la connexion Socket.io
+    const newSocket = io("http://localhost:5000", {
+      withCredentials: true,
+    });
+
+    setSocket(newSocket);
+
+    // Rejoindre la room des produits
+    newSocket.emit("join_products");
+
+    // Écouter les mises à jour de produits en temps réel
+    newSocket.on("product_updated", (data) => {
+      setBpcData((prevData) =>
+        prevData.map((product) =>
+          product.text === data.name
+            ? {
+                ...product,
+                disabled: !data.active, // Inverser pour l'affichage
+              }
+            : product
+        )
+      );
+    });
+
+    // Gestion des erreurs
+    newSocket.on("connect_error", (error) => {
+      console.error("❌ Erreur connexion Socket.io:", error);
+    });
+
+    return () => {
+      newSocket.emit("leave_products");
+      newSocket.disconnect();
+    };
+  }, []);
+
+  // Chargement initial des données
   useEffect(() => {
     const loadSnack = async () => {
       try {
@@ -48,6 +87,8 @@ const Bpc = () => {
             disabled: !isActive, // Inverser pour 'disabled'
             prix: p.prix,
             description: p.description,
+            type: p.type,
+            bacon: p.bacon,
           };
         });
         setBpcData(boissonsAvecStatut);
@@ -61,6 +102,8 @@ const Bpc = () => {
           disabled: false, // ← TOUT ACTIVÉ en fallback
           prix: p.prix,
           description: p.description,
+          type: p.type,
+          bacon: p.bacon,
         }));
         setBpcData(fallbackData);
       } finally {
@@ -71,7 +114,12 @@ const Bpc = () => {
     loadSnack();
   }, []);
 
-  if (loading) return <div>Chargement des bpc...</div>;
+  if (loading)
+    return (
+      <div className="flex justify-center items-center py-8">
+        Chargement des bpc...
+      </div>
+    );
   return (
     <div className="">
       <ScrollPage
@@ -79,6 +127,7 @@ const Bpc = () => {
         data={bpcData}
         routePrefix="/carte/bpc/"
       />
+      {/*  {socket? "connected" : "not connected"}*/}
     </div>
   );
 };

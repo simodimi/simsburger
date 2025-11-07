@@ -21,12 +21,16 @@
 #commentaireProduit {
   padding: 0;
 }
+.CartemainGeneral {
+  position: relative;
+  height: calc(100% - 50px);
+}
 .Alertesbtn {
   display: flex;
   justify-content: center;
   position: absolute;
   left: 50%;
-  bottom: 1%;
+  bottom: 40%;
   transform: translateX(-50%);
 }
 #actionProducts {
@@ -100,4 +104,13 @@
 .fournisseurscase {
   overflow-x: auto;
   scrollbar-width: thin;
+}
+.nothingsms {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh - 500px);
+  width: 100%;
+  font-weight: bold;
+  font-size: 28px;
 }

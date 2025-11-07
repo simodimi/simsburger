@@ -50,7 +50,6 @@ const ScrollPage = ({ title, data, routePrefix }) => {
         <div className="">
           <p id="CartemainGeneralText">Allez-y plus rapidement en filtrant</p>
 
-          {/* Filtre (optionnel) */}
           {Filterbar && <Filterbar data={data} setfilterdata={setItems} />}
         </div>
       )}

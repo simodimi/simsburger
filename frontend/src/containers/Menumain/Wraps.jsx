@@ -1,12 +1,49 @@
 import ScrollPage from "../../components/ScrollPage";
 import React, { useEffect, useState } from "react";
 import { wrap } from "../exportelt/Exportelt";
+import { io } from "socket.io-client";
 import axios from "../../pagePrivate/Utils";
 
 const Wraps = () => {
   const [wrapData, setWrapData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [socket, setSocket] = useState(null);
 
+  useEffect(() => {
+    // Initialiser la connexion Socket.io
+    const newSocket = io("http://localhost:5000", {
+      withCredentials: true,
+    });
+
+    setSocket(newSocket);
+
+    // Rejoindre la room des produits
+    newSocket.emit("join_products");
+
+    // Écouter les mises à jour de produits en temps réel
+    newSocket.on("product_updated", (data) => {
+      setWrapData((prevData) =>
+        prevData.map((product) =>
+          product.text === data.name
+            ? {
+                ...product,
+                disabled: !data.active, // Inverser pour l'affichage
+              }
+            : product
+        )
+      );
+    });
+
+    // Gestion des erreurs
+    newSocket.on("connect_error", (error) => {
+      console.error("❌ Erreur connexion Socket.io:", error);
+    });
+
+    return () => {
+      newSocket.emit("leave_products");
+      newSocket.disconnect();
+    };
+  }, []);
   useEffect(() => {
     const loadSnack = async () => {
       try {
@@ -48,6 +85,8 @@ const Wraps = () => {
             disabled: !isActive, // Inverser pour 'disabled'
             prix: p.prix,
             description: p.description,
+            type: p.type,
+            bacon: p.bacon,
           };
         });
         setWrapData(boissonsAvecStatut);
@@ -61,6 +100,8 @@ const Wraps = () => {
           disabled: false, // ← TOUT ACTIVÉ en fallback
           prix: p.prix,
           description: p.description,
+          type: p.type,
+          bacon: p.bacon,
         }));
         setWrapData(fallbackData);
       } finally {

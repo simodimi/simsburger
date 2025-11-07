@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../../styles/adminkey.css";
 import Button from "../../components/Button";
 import { inventaire } from "../exportelt/Exportelt";
@@ -79,13 +79,33 @@ const Alert = () => {
       }))
     );
   };
+  //mis à jour de l'heures
+  const [timer, setTimer] = useState(
+    new Date().toLocaleTimeString("fr-FR", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    })
+  );
+  useEffect(() => {
+    const timing = setInterval(() => {
+      setTimer(
+        new Date().toLocaleTimeString("fr-FR", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        })
+      );
+    }, 1000);
 
+    return () => clearInterval(timing);
+  }, []);
   return (
     <div className="CartemainGeneral">
       <h5>Inventaires</h5>
       <div className="historisques">
         <p style={{ paddingLeft: "20px" }}>
-          Inventaire du {new Date().toLocaleString()}
+          Inventaire du {new Date().toLocaleDateString()} {timer}
         </p>
       </div>
 

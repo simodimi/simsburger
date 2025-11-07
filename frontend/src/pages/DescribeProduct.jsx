@@ -30,36 +30,160 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import { ProductContext } from "../components/ProductContext";
+import axios from "../pagePrivate/Utils";
+import { io } from "socket.io-client";
+
 const DescribeProduct = () => {
   const articleRef = useRef(null);
   useEffect(() => {
-    articleRef.current?.scrollIntoView({ behavior: "auto" }); //scroll en haut de la page
+    articleRef.current?.scrollIntoView({ behavior: "auto" });
   }, []);
+
   const navigate = useNavigate();
   const [hide, sethide] = useState({
     allergene: false,
     nutrition: false,
     personnalisation: true,
   });
-  //gestion des produits désactivés
-  const savedStatus = JSON.parse(localStorage.getItem("productStatus")) || {};
 
-  const boissonsFiltered = boissons.map((p) => ({
-    ...p,
-    disabled: !!savedStatus[p.id],
-  }));
+  // 🔥 Gestion des statuts (backend + Socket.io)
+  const [boissonsFiltered, setBoissonsFiltered] = useState([]);
+  const [snacksFiltered, setSnacksFiltered] = useState([]);
+  const [burgersFiltered, setBurgersFiltered] = useState([]);
+  const [socket, setSocket] = useState(null);
 
-  const snacksFiltered = snacks.map((p) => ({
-    ...p,
-    disabled: !!savedStatus[p.id],
-  }));
+  useEffect(() => {
+    const loadProductStatus = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/product");
+        const backendProducts = Array.isArray(response.data)
+          ? response.data
+          : [];
 
-  const burgersFiltered = [...bpc, ...hambs, ...menu, ...wrap].map((p) => ({
-    ...p,
-    disabled: !!savedStatus[p.id],
-  }));
-  //filtrer les  boissons par type
-  // filtrer selon menu
+        const getStatus = (name) => {
+          const backend = backendProducts.find((bp) => bp.name === name);
+          if (!backend) return false;
+          return !(
+            backend.active === 1 ||
+            backend.active === true ||
+            backend.active === "1"
+          );
+        };
+
+        // Construire les listes LOCALES immédiatement
+        const boissonsWithStatus = boissons.map((p) => ({
+          ...p,
+          disabled: getStatus(p.text),
+        }));
+        const snacksWithStatus = snacks.map((p) => ({
+          ...p,
+          disabled: getStatus(p.text),
+        }));
+        const burgersWithStatus = [...bpc, ...hambs, ...menu, ...wrap].map(
+          (p) => ({
+            ...p,
+            disabled: getStatus(p.text),
+          })
+        );
+
+        // Mettre à jour les états
+        setBoissonsFiltered(boissonsWithStatus);
+        setSnacksFiltered(snacksWithStatus);
+        setBurgersFiltered(burgersWithStatus);
+
+        // === Choisir la sélection par défaut en fonction du menu courant ===
+        const menuType = selectionMenu || "menuxxl";
+
+        const filterSnackByMenuLocal = (menuTypeLocal) => {
+          if (menuTypeLocal === "menuxxl")
+            return snacksWithStatus.filter((p) => p.type === "grand");
+          if (menuTypeLocal === "menuxl")
+            return snacksWithStatus.filter((p) => p.type === "moyen");
+          return snacksWithStatus.filter((p) => p.type === "petit");
+        };
+
+        const filterBoissonByMenuLocal = (menuTypeLocal) => {
+          return menuTypeLocal === "menuxxl"
+            ? boissonsWithStatus.filter((p) => p.type === "grand")
+            : boissonsWithStatus.filter((p) => p.type === "petit");
+        };
+
+        const snacksActifs = filterSnackByMenuLocal(menuType).filter(
+          (s) => !s.disabled
+        );
+        const boissonsActives = filterBoissonByMenuLocal(menuType).filter(
+          (b) => !b.disabled
+        );
+
+        if (snacksActifs.length > 0) {
+          setselectionSnack(snacksActifs[0]);
+          setImage1(snacksActifs[0].photo);
+          setSnacksSelection(filterSnackByMenuLocal(menuType));
+        } else {
+          setselectionSnack(null);
+          setImage1("");
+          setSnacksSelection(filterSnackByMenuLocal(menuType));
+        }
+
+        if (boissonsActives.length > 0) {
+          setCheckboisson(boissonsActives[0]);
+          setImage3(boissonsActives[0].photo);
+          setboissonsSelection(filterBoissonByMenuLocal(menuType));
+        } else {
+          setCheckboisson(null);
+          setImage3("");
+          setboissonsSelection(filterBoissonByMenuLocal(menuType));
+        }
+      } catch (error) {
+        console.error("Erreur de chargement des statuts produits :", error);
+        setBoissonsFiltered(boissons);
+        setSnacksFiltered(snacks);
+        setBurgersFiltered([...bpc, ...hambs, ...menu, ...wrap]);
+
+        setselectionSnack(snacks[0]);
+        setImage1(snacks[0]?.photo || "");
+        setCheckboisson(boissons[1]);
+        setImage3(boissons[1]?.photo || "");
+      }
+    };
+
+    loadProductStatus();
+
+    // --- SOCKET.IO ---
+    const newSocket = io("http://localhost:5000", { withCredentials: true });
+    setSocket(newSocket);
+
+    newSocket.emit("join_products");
+
+    newSocket.on("product_updated", (data) => {
+      setBoissonsFiltered((prev) =>
+        prev.map((p) =>
+          p.text === data.name ? { ...p, disabled: !data.active } : p
+        )
+      );
+      setSnacksFiltered((prev) =>
+        prev.map((p) =>
+          p.text === data.name ? { ...p, disabled: !data.active } : p
+        )
+      );
+      setBurgersFiltered((prev) =>
+        prev.map((p) =>
+          p.text === data.name ? { ...p, disabled: !data.active } : p
+        )
+      );
+    });
+
+    newSocket.on("connect_error", (err) => {
+      console.error("Erreur Socket.io :", err);
+    });
+
+    return () => {
+      newSocket.emit("leave_products");
+      newSocket.disconnect();
+    };
+  }, []);
+
+  //filtrer les boissons par type
   const filterBoissonByMenu = (menuType) => {
     const list =
       menuType === "menuxxl"
@@ -77,6 +201,7 @@ const DescribeProduct = () => {
     }
     return snacksFiltered.filter((p) => p.type === "petit");
   };
+
   const defaultBoisson = boissonsFiltered.find((b) => !b.disabled) || {
     photo: boissons[1],
     text: "Aucune boisson disponible",
@@ -88,11 +213,12 @@ const DescribeProduct = () => {
     text: "Aucun snack disponible",
     disabled: true,
   };
+
   //selection des menus
   const [selectionMenu, setselectionMenu] = useState("menuxxl");
   const [selectionBurger, setselectionBurger] = useState("burger");
-  const [checkboisson, setCheckboisson] = useState(boissons[1]);
-  const [selectionSnack, setselectionSnack] = useState(snacks[0]);
+  const [checkboisson, setCheckboisson] = useState(null);
+  const [selectionSnack, setselectionSnack] = useState(null);
   const [boissonsSelection, setboissonsSelection] = useState(
     filterBoissonByMenu(selectionMenu)
   );
@@ -104,6 +230,77 @@ const DescribeProduct = () => {
     choix2: false,
     choix3: false,
   });
+
+  // 🔥 CORRECTION : Gestion améliorée des images
+  const [image1, setImage1] = useState("");
+  const [image2, setImage2] = useState(burger || "");
+  const [image3, setImage3] = useState("");
+
+  // ✅ Met à jour l'image automatiquement quand le snack sélectionné change
+  useEffect(() => {
+    if (selectionSnack && !selectionSnack.disabled) {
+      setImage1(selectionSnack.photo);
+    } else {
+      // Si aucun snack n'est sélectionné ou désactivé, trouver le premier disponible
+      const availableSnack = snacksSelection.find((s) => !s.disabled);
+      setImage1(availableSnack?.photo || "");
+    }
+  }, [selectionSnack, snacksSelection]);
+
+  // ✅ Met à jour l'image automatiquement quand la boisson sélectionnée change
+  useEffect(() => {
+    if (checkboisson && !checkboisson.disabled) {
+      setImage3(checkboisson.photo);
+    } else {
+      const availableBoisson = boissonsSelection.find((b) => !b.disabled);
+      setImage3(availableBoisson?.photo || "");
+    }
+  }, [checkboisson, boissonsSelection]);
+
+  // Synchroniser automatiquement la sélection si un élément devient désactivé
+  useEffect(() => {
+    const snacksActifs = snacksSelection.filter((s) => !s.disabled);
+    const boissonsActives = boissonsSelection.filter((b) => !b.disabled);
+
+    // Si le snack sélectionné est désactivé, on prend le premier snack actif
+    if (selectionSnack?.disabled && snacksActifs.length > 0) {
+      const nextSnack = snacksActifs[0];
+      setselectionSnack(nextSnack);
+      // L'image sera mise à jour via l'useEffect ci-dessus
+    } else if (!selectionSnack && snacksActifs.length > 0) {
+      // Si aucun snack n'est sélectionné, prendre le premier actif
+      setselectionSnack(snacksActifs[0]);
+    }
+
+    // Si la boisson sélectionnée est désactivée, on prend la première boisson active
+    if (checkboisson?.disabled && boissonsActives.length > 0) {
+      const nextBoisson = boissonsActives[0];
+      setCheckboisson(nextBoisson);
+    } else if (!checkboisson && boissonsActives.length > 0) {
+      setCheckboisson(boissonsActives[0]);
+    }
+  }, [snacksSelection, boissonsSelection, selectionSnack, checkboisson]);
+
+  // Définir automatiquement le snack par défaut pour le menu
+  useEffect(() => {
+    const snacksActifs = snacksSelection.filter((s) => !s.disabled);
+
+    if (snacksActifs.length > 0) {
+      // Si aucun snack n'est sélectionné OU si le snack actuel est désactivé
+      if (
+        !selectionSnack ||
+        selectionSnack.disabled ||
+        !snacksActifs.some((s) => s.id === selectionSnack.id)
+      ) {
+        setselectionSnack(snacksActifs[0]);
+        // L'image sera mise à jour automatiquement via l'useEffect dédié
+      }
+    } else {
+      // Aucun snack disponible
+      setselectionSnack(null);
+      setImage1("");
+    }
+  }, [snacksSelection, selectionMenu]);
 
   useEffect(() => {
     if (selectionMenu === "menuxxl" && selectionBurger === "burger") {
@@ -164,50 +361,48 @@ const DescribeProduct = () => {
     }
   }, [selectionMenu, selectionBurger]);
 
+  // Rafraîchir la sélection quand les données changent
   useEffect(() => {
-    if (selectionMenu === "menuxxl") {
-      setImage1(snacksSelection[0].photo);
-      setImage3(boissonsSelection[0].photo);
-    }
-    if (selectionMenu === "menuxl") {
-      setImage1(snacksSelection[0].photo);
-      setImage3(boissonsSelection[0].photo);
-    }
-    if (selectionMenu === "menul") {
-      setImage1(snacksSelection[0].photo);
-      setImage3(boissonsSelection[0].photo);
-    }
-  }, [selectionMenu]);
+    setboissonsSelection(filterBoissonByMenu(selectionMenu));
+    setSnacksSelection(filterSnackByMenu(selectionMenu));
+  }, [boissonsFiltered, snacksFiltered, selectionMenu]);
 
   const selectionMenux = (p) => {
     setselectionMenu(p);
-    setboissonsSelection(filterBoissonByMenu(p));
-    setCheckboisson(filterBoissonByMenu(p)[0] || defaultBoisson);
-    setSnacksSelection(filterSnackByMenu(p));
-    setselectionSnack(filterSnackByMenu(p)[0] || defaultSnack);
+    const newBoissons = filterBoissonByMenu(p);
+    const newSnacks = filterSnackByMenu(p);
+
+    setboissonsSelection(newBoissons);
+    setSnacksSelection(newSnacks);
+
+    // Sélectionner automatiquement le premier élément disponible
+    const availableBoisson = newBoissons.find((b) => !b.disabled);
+    const availableSnack = newSnacks.find((s) => !s.disabled);
+
+    setCheckboisson(availableBoisson || null);
+    setselectionSnack(availableSnack || null);
   };
+
   const selectionBurgerx = (p) => {
     setselectionBurger(p);
   };
+
   const handlechoiceboisson = (p) => {
-    if (p.disabled) return; // Empêcher la sélection si l'élément est désactivé
+    if (p.disabled) return;
     setCheckboisson(p);
-    setImage3(p.photo);
-  };
-  const handlechoiceSnack = (p) => {
-    if (p.disabled) return; // Empêcher la sélection si l'élément est désactivé
-    setselectionSnack(p);
-    setImage1(p.photo);
+    // L'image sera mise à jour via useEffect
   };
 
-  //image d'archive
-  const [image1, setImage1] = useState(snacks[0]);
-  const [image2, setImage2] = useState(burger);
-  const [image3, setImage3] = useState(boisson);
-  //navigation url
-  const { categorie, text } = useParams(); // useparams pour recuperer l'url
+  const handlechoiceSnack = (p) => {
+    if (p.disabled) return;
+    setselectionSnack(p);
+    // L'image sera mise à jour via useEffect
+  };
+
+  //navigation urls
+  const { categorie, text } = useParams();
   const allItems = {
-    boisson: boissons, // categorie(pour url): nom de l'objet
+    boisson: boissons,
     snack: snacks,
     sauce: sauce,
     dessert: dessert,
@@ -219,9 +414,9 @@ const DescribeProduct = () => {
     nouveau: nouveau,
   };
 
-  const currentItems = allItems[categorie] || []; //categorie(pour url): nom de l'objet
+  const currentItems = allItems[categorie] || [];
   const product = currentItems.find((p) => p.text === text);
-  const isboisson = categorie === "boisson"; //verifier si la page actuelle est boisson
+  const isboisson = categorie === "boisson";
   const isnack = categorie === "snack";
   const issauce = categorie === "sauce";
   const isdessert = categorie === "dessert";
@@ -231,6 +426,7 @@ const DescribeProduct = () => {
   const ishamburger = categorie === "hamburger";
   const ismenu = categorie === "menu";
   const isnouveau = categorie === "nouveau";
+
   //personnalisation
   const productComposition = composition[product.text] || {};
 
@@ -238,6 +434,7 @@ const DescribeProduct = () => {
     const selectedElement = localStorage.getItem("selectedElement");
     navigate(-1, { state: { selectedElement: selectedElement } });
   };
+
   //boîte de dialogue
   const [open, setOpen] = useState(false);
   const handleClickOpen = () => {
@@ -246,28 +443,26 @@ const DescribeProduct = () => {
   const handleClose = () => {
     setOpen(false);
   };
+
   //ajouter les choix au panier
   const { addToCart } = useContext(ProductContext);
-  /*const addOptions = (p) => {
-    addToCart(p);
-  };*/
   const [items, setitems] = useState(
     additems.map((item) => ({ ...item, quantity: 0, minus: true, plux: false }))
   );
 
   const addOptions = (p) => {
-    if (p.disabled) {
-      return; // Empêcher l'ajout si le produit est désactivé
+    if (p.disabled || selectionSnack?.disabled || checkboisson?.disabled) {
+      alert("Un des éléments du menu est actuellement indisponible.");
+      return;
     }
-    // ingrédients de base du burger (composition)
+
     const baseIngredients = Object.values(productComposition)
       .filter((val) => typeof val === "string")
       .map((val) => val.trim());
 
-    // Ingrédients ajoutés (hors base)
     const customItems = items.filter(
       (item) =>
-        item.wasModified && // S’assurer que l’utilisateur a modifié cet item
+        item.wasModified &&
         !item.hidden &&
         item.quantity > (item.baseQuantity || 0)
     );
@@ -277,23 +472,19 @@ const DescribeProduct = () => {
       return sum + item.prix * supplementQty;
     }, 0);
 
-    //  Retraits : uniquement si un ingrédient de base (qui devait être à 1)
-    // est passé à 0 → preuve que l’utilisateur l’a retiré.
     const removedItems = items.filter(
       (item) =>
-        item.wasModified && // S’assurer que l’utilisateur a modifié cet item
+        item.wasModified &&
         item.quantity === 0 &&
         !item.hidden &&
         baseIngredients.includes(item.text.trim())
     );
 
-    // Burger est personnalisé seulement si ajouts OU retraits
     const isCustom = customItems.length > 0 || removedItems.length > 0;
 
     let finalPrice = (parseFloat(p.prix) || 0) + extraPrice;
     let menuData = null;
 
-    // Gestion spéciale si c’est un menu
     if (ismenu) {
       finalPrice =
         (parseFloat(p.prix) || 0) +
@@ -329,10 +520,13 @@ const DescribeProduct = () => {
         text: item.text,
       })),
       menu: menuData,
-      //prix: finalPrice,
     });
     setOpen(true);
   };
+
+  if (boissonsFiltered.length === 0 || snacksFiltered.length === 0) {
+    return <div>Chargement...</div>;
+  }
 
   return (
     <div className="Article" ref={articleRef}>
@@ -648,7 +842,7 @@ const DescribeProduct = () => {
               <p>ingredients</p>
               <div className="Partition">
                 {Array.from({ length: 12 }, (_, i) => i + 1).map((p) => {
-                  const texte = composition[product.text][`texte${p}`]; // texte de l'ingredient
+                  const texte = composition[product.text][`texte${p}`];
                   const image = composition[product.text][`image${p}`];
                   if (!texte || !image) return null;
                   return (

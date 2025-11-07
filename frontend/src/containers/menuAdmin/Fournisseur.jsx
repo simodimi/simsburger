@@ -96,6 +96,7 @@ const Fournisseur = () => {
           email: "",
           commentaire: "",
         });
+        setpreviewimage(null);
         setViewfournisseurs(false);
         setBtnctrl(true);
 
@@ -153,6 +154,7 @@ const Fournisseur = () => {
     }
   };
   const handledrop = () => {
+    setpreviewimage(null);
     setViewfournisseurs(false);
     setBtnctrl(true);
     setaddfournisseur({
@@ -166,7 +168,7 @@ const Fournisseur = () => {
     });
   };
   return (
-    <div className="CartemainGeneral" style={{ position: "relative" }}>
+    <div className="CartemainGeneral">
       <h5>Fournisseurs</h5>
 
       {newfournisseurs.length === 0 && !viewfournisseurs ? (

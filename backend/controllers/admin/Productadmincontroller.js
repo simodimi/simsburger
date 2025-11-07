@@ -35,6 +35,16 @@ const toggleProduct = async (req, res) => {
     product.active = active;
     await product.save();
 
+    // ÉMISSION SOCKET.IO - Notifier tous les clients
+    if (global.io) {
+      global.io.to("products_room").emit("product_updated", {
+        productId: product.productId,
+        name: product.name,
+        active: product.active,
+        updatedAt: new Date(),
+      });
+    }
+
     res.status(200).json({
       message: `Produit ${product.name} ${
         active ? "activé" : "désactivé"

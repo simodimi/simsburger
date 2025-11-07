@@ -652,7 +652,7 @@ const New = ({
     // Nettoie la chaîne pour éviter espaces ou caractères spéciaux
     const currentHour = parseInt(heurefr);
     console.log(`Heure FR: ${currentHour}h`);
-    return currentHour < 9 || currentHour >= 23;
+    return currentHour < 11 || currentHour >= 23;
   };
   //mis à jour de l'heures
   const [timer, setTimer] = useState(
@@ -1242,7 +1242,7 @@ const New = ({
               <p>Ton burger,Ton kiff,Ton Sim'sburger</p>
             </DialogContentText>
             <DialogContentText id="messageConfirm">
-              desolé,sims'burger à sommeil ,il se reveillera demain à 09h
+              desolé,sims'burger à sommeil ,il se reveillera demain à 11h
             </DialogContentText>
             <DialogContentText id="messageConfirm" color="#e31937">
               {timer}

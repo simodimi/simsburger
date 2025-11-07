@@ -91,32 +91,32 @@ const InscriptionAdmin = () => {
   };
 
   // Polling pour vérifier la validation
-  const startStatusPolling = (idadmin) => {
-    const interval = setInterval(async () => {
-      const isActive = await checkAdminStatus(idadmin);
-      if (isActive) {
-        clearInterval(interval);
-        toast.success("Votre compte a été validé! Vous pouvez vous connecter.");
-        handleClose();
-        try {
-          // 🔥 Récupération des infos complètes de l'admin validé
-          const { data } = await axios.get(
-            `http://localhost:5000/admin/${idadmin}`
-          );
-          // ✅ Redirection vers LoginAdmin avec les données
-          navigate("/admin/", {
-            state: {
-              login: true,
-              login1: false,
-              adminData: data, // on passe les infos
-            },
-          });
-        } catch (err) {
-          console.error("Erreur récupération admin:", err);
-          toast.error("Erreur lors de la récupération de vos données.");
-        }
+  const startStatusPolling = async (idadmin) => {
+    //const interval = setInterval(async () => {
+    const isActive = await checkAdminStatus(idadmin);
+    if (isActive) {
+      clearInterval(interval);
+      toast.success("Votre compte a été validé! Vous pouvez vous connecter.");
+      handleClose();
+      try {
+        // 🔥 Récupération des infos complètes de l'admin validé
+        const { data } = await axios.get(
+          `http://localhost:5000/admin/${idadmin}`
+        );
+        // ✅ Redirection vers LoginAdmin avec les données
+        navigate("/admin/", {
+          state: {
+            login: true,
+            login1: false,
+            adminData: data, // on passe les infos
+          },
+        });
+      } catch (err) {
+        console.error("Erreur récupération admin:", err);
+        toast.error("Erreur lors de la récupération de vos données.");
       }
-    }, 5000); // Vérifier toutes les 5 secondes
+    }
+    // }, 5000); // Vérifier toutes les 5 secondes
   };
   const handlesubmit = async (e) => {
     e.preventDefault();

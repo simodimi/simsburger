@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import Button from "../components/Button";
 import logo from "../assets/logo/logo.png";
 import bas from "../assets/icone/bas.png";
@@ -12,20 +12,19 @@ import DialogContentText from "@mui/material/DialogContentText";
 import { toast } from "react-toastify";
 import { useAuth } from "./AuthContextUser";
 import axios from "axios";
-import { use } from "react";
 
 const Login = () => {
   const navigate = useNavigate();
-  const handleback = () => navigate(-1);
-  const [login2, setlogin] = useState(false);
-  const [login1, setlogin1] = useState(true);
-  const [msgerror, setmsgerror] = useState(false);
-  const [msgerrortext, setmsgerrortext] = useState("erreur de connexion");
-  const [arrow, setarrow] = useState(false);
-  const [usercommande, setusercommande] = useState([]);
-  const [showtable, setshowtable] = useState(false);
+  const location = useLocation();
   const { login, logout, user, isAuthenticated } = useAuth();
-  const [loading, setloading] = useState(false);
+
+  const handleback = () => navigate(-1);
+  const [msgerror, setMsgerror] = useState(false);
+  const [msgerrortext, setMsgerrortext] = useState("erreur de connexion");
+  const [arrow, setArrow] = useState(false);
+  const [usercommande, setUsercommande] = useState([]);
+  const [showtable, setShowtable] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [open10, setOpen10] = useState(false);
   const [indexToDelete, setIndexToDelete] = useState(null);
 
@@ -33,26 +32,32 @@ const Login = () => {
   const [pointsUtilises, setPointsUtilises] = useState(0);
   const [pointsDisponibles, setPointsDisponibles] = useState(0);
 
+  // Récupération des points seulement si l'utilisateur est connecté
   useEffect(() => {
     const fetchPoints = async () => {
+      if (!isAuthenticated) return;
+
       try {
-        const res = await axios.get("http://localhost:5000/user/points", {
-          withCredentials: true,
-        });
+        const res = await axios.get("http://localhost:5000/user/points");
         setPointsCumules(Number(res.data.pointscumules));
         setPointsUtilises(Number(res.data.pointsutilises));
         setPointsDisponibles(Number(res.data.pointsrestant));
       } catch (error) {
         console.error("Erreur lors de la récupération des points :", error);
+        // Si erreur 401, l'utilisateur n'est probablement pas connecté
+        if (error.response?.status === 401) {
+          console.log("Utilisateur non authentifié pour récupérer les points");
+        }
       }
     };
+
     fetchPoints();
-  }, []);
-  //pointsDisponibles = pointsCumules - pointsUtilises;
-  // toggle de l’historique
+  }, [isAuthenticated]);
+
+  // toggle de l'historique
   const handleClick = () => {
-    setarrow((prev) => !prev);
-    setshowtable((prev) => !prev);
+    setArrow((prev) => !prev);
+    setShowtable((prev) => !prev);
   };
 
   // calcul du total global
@@ -64,24 +69,11 @@ const Login = () => {
     return sumCommande + totalCommande;
   }, 0);
 
-  // nouveaux points gagnés
-  const nouveauxPoints = totalGlobal / 5;
-
-  // mise à jour des points cumulés seulement si le total augmente
-  /*  useEffect(() => {
-    if (nouveauxPoints > pointsCumules) {
-      setPointsCumules(nouveauxPoints);
-      localStorage.setItem("pointsCumules", JSON.stringify(nouveauxPoints));
-    }
-  }, [nouveauxPoints]);*/
-
   const handleClose = () => {
     setOpen10(false);
     setIndexToDelete(null);
   };
 
-  // Suppression de la commande et dans le backend
-  useEffect(() => {});
   const handleConfirmDelete = async () => {
     if (indexToDelete !== null) {
       const commandeASupprimer = usercommande[indexToDelete];
@@ -96,10 +88,14 @@ const Login = () => {
         );
       }
       try {
-        axios.delete(`http://localhost:5000/orderitem/${id}`);
-        setusercommande((prev) => prev.filter((_, i) => i !== indexToDelete));
+        // Vous devez avoir l'ID de la commande pour la suppression
+        // const id = commandeASupprimer.id;
+        // await axios.delete(`http://localhost:5000/orderitem/${id}`);
+        setUsercommande((prev) => prev.filter((_, i) => i !== indexToDelete));
+        toast.success("Commande supprimée avec succès");
       } catch (error) {
         console.error("Erreur lors de la suppression de la commande", error);
+        toast.error("Erreur lors de la suppression");
       }
     }
     handleClose();
@@ -109,116 +105,112 @@ const Login = () => {
     setIndexToDelete(index);
     setOpen10(true);
   };
+
   //code fidélité
   const [code, setCode] = useState(true);
   const [codeError, setCodeError] = useState("");
-  const [valuecode, setvaluecode] = useState("");
+  const [valuecode, setValuecode] = useState("");
+
   useEffect(() => {
-    if (valuecode.length !== 5) {
-      setCodeError("le code doit contenir 5 chiffres");
+    if (valuecode.length > 0 && valuecode.length !== 5) {
+      setCodeError("Le code doit contenir 5 chiffres");
     } else {
       setCodeError("");
     }
   }, [valuecode]);
+
   const handleCode = async () => {
     if (valuecode.length !== 5) {
+      toast.error("Le code doit contenir exactement 5 chiffres");
       return;
     }
-    try {
-      await axios.post(
-        "http://localhost:5000/user/updatecode",
-        {
-          valuecode,
-        },
-        { withCredentials: true }
-      );
-      setCodeError("code enregistré");
-      toast.success("code enregistré");
-      setvaluecode(valuecode);
-      setcodereduction(valuecode);
-      setCode(false);
-    } catch (error) {
-      console.error("Erreur lors de l'enregistrement du code", error);
-    }
-  };
-  const handlechange = async () => {
     try {
       await axios.post("http://localhost:5000/user/updatecode", {
         valuecode,
       });
-      toast.success("code enregistré");
-      setCode(true);
-      setvaluecode("");
-      setCodeError("");
+      setCodeError("Code enregistré avec succès");
+      toast.success("Code enregistré avec succès");
+      setCode(false);
     } catch (error) {
       console.error("Erreur lors de l'enregistrement du code", error);
+      toast.error("Erreur lors de l'enregistrement du code");
     }
   };
-  const [datauser, setdatauser] = useState({
+
+  const handleChangeCode = async () => {
+    try {
+      await axios.post("http://localhost:5000/user/updatecode", {
+        valuecode: "",
+      });
+      toast.success("Code réinitialisé");
+      setCode(true);
+      setValuecode("");
+      setCodeError("");
+    } catch (error) {
+      console.error("Erreur lors de la modification du code", error);
+      toast.error("Erreur lors de la modification du code");
+    }
+  };
+
+  const [datauser, setDatauser] = useState({
     mailuser: "",
     passworduser: "",
   });
 
   const handlechanges = (e) => {
-    setdatauser({ ...datauser, [e.target.name]: e.target.value });
+    setDatauser({ ...datauser, [e.target.name]: e.target.value });
   };
+
   const handleLogout = async () => {
     try {
-      // Appel correct : POST + withCredentials
-      await axios.post(
-        "http://localhost:5000/user/logout",
-        {},
-        { withCredentials: true }
-      );
       await logout();
-      toast.info("Déconnexion réussie !");
-      setlogin(false);
-      setlogin1(true);
     } catch (error) {
       console.error("Erreur de déconnexion :", error);
-      toast.error("Une erreur est survenue lors de la déconnexion");
-    }
-  };
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!datauser.mailuser || !datauser.passworduser) {
-      setmsgerror(true);
-      setmsgerrortext("Veuillez remplir tous les champs");
-      toast.error("Veuillez remplir tous les champs");
-      return;
-    }
-    setloading(true);
-    try {
-      await login(datauser.mailuser && datauser.passworduser);
-      toast.success("Connexion réussie !");
-      const from = location.state?.from?.pathname || "/carte";
-      navigate(from, { replace: true });
-      setmsgerror(false);
-      setmsgerrortext(false);
-      setlogin1(false);
-      setlogin(true);
-      setdatauser({ mailuser: "", passworduser: "" });
-    } catch (err) {
-      const msg = err.response?.data?.message || "Erreur de connexion";
-      setmsgerror(msg);
-      toast.error(msg);
-    } finally {
-      setloading(false);
     }
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!datauser.mailuser || !datauser.passworduser) {
+      setMsgerror(true);
+      setMsgerrortext("Veuillez remplir tous les champs");
+      toast.error("Veuillez remplir tous les champs");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await login(datauser.mailuser, datauser.passworduser);
+      setMsgerror(false);
+      setMsgerrortext("");
+      setDatauser({ mailuser: "", passworduser: "" });
+
+      // Redirection après connexion réussie
+      const from = location.state?.from?.pathname || "/carte";
+      navigate(from, { replace: true });
+    } catch (err) {
+      const msg = err.response?.data?.message || "Erreur de connexion";
+      setMsgerror(true);
+      setMsgerrortext(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Récupération des commandes seulement si l'utilisateur est connecté
   useEffect(() => {
-    const update = async () => {
+    const fetchOrders = async () => {
+      if (!isAuthenticated) return;
+
       try {
         const response = await axios.get("http://localhost:5000/orderitem");
-        // 🔥 REGROUPER LES ITEMS PAR COMMANDE COTÉ FRONTEND
         const commandesRegroupees = response.data.reduce((acc, item) => {
           const commandeId = item.order_id;
           if (!acc[commandeId]) {
             acc[commandeId] = {
               id: commandeId,
-              date: item.createdAt || new Date(), // Utiliser createdAt comme date
-              type: item.type, //stockage du type de commande
+              date: item.createdAt || new Date(),
+              type: item.type,
               items: [],
             };
           }
@@ -227,15 +219,15 @@ const Login = () => {
         }, {});
 
         const result = Object.values(commandesRegroupees);
-        setusercommande(result);
+        setUsercommande(result);
       } catch (error) {
-        console.error("Erreur:", error);
+        console.error("Erreur lors de la récupération des commandes:", error);
       }
     };
-    update();
-    const interval = setInterval(update, 5000); // Mettre à jour toutes les 5 secondes
-    return () => clearInterval(interval);
-  }, []);
+
+    fetchOrders();
+  }, [isAuthenticated]);
+
   return (
     <div className="shoppingService">
       <div className="Service">
@@ -253,7 +245,7 @@ const Login = () => {
             </div>
 
             {/* --- SECTION LOGIN --- */}
-            {login1 && (
+            {!isAuthenticated && (
               <div className="">
                 {msgerror && <p id="loginError">{msgerrortext}</p>}
                 <form onSubmit={handleSubmit}>
@@ -265,6 +257,7 @@ const Login = () => {
                         name="mailuser"
                         value={datauser.mailuser}
                         onChange={handlechanges}
+                        required
                       />
                     </div>
                     <div className="ServiceInscriptionTitle">
@@ -274,10 +267,15 @@ const Login = () => {
                         name="passworduser"
                         value={datauser.passworduser}
                         onChange={handlechanges}
+                        required
                       />
                     </div>
                     <div className="btnLogin">
-                      <Button type="submit" className="nextbtn">
+                      <Button
+                        type="submit"
+                        className="nextbtn"
+                        disabled={loading}
+                      >
                         {loading ? "Connexion en cours..." : "Se connecter"}
                       </Button>
                     </div>
@@ -285,13 +283,13 @@ const Login = () => {
                 </form>
                 <div className="loginFooter">
                   <p>
-                    vous n'avez pas un compte ?{" "}
+                    Vous n'avez pas de compte ?{" "}
                     <Link to="/inscription" style={{ color: "#e31937" }}>
                       Inscrivez-vous
                     </Link>
                   </p>
                   <p>
-                    mot de passe oublié ?{" "}
+                    Mot de passe oublié ?{" "}
                     <Link to="/initialisation" style={{ color: "blue" }}>
                       Réinitialiser mot de passe
                     </Link>
@@ -301,9 +299,10 @@ const Login = () => {
             )}
 
             {/* --- SECTION UTILISATEUR CONNECTÉ --- */}
-            {isAuthenticated && user && login2 && (
+            {isAuthenticated && user && (
               <div className="loginUser">
-                <p>hello {user.username}</p>
+                <p>Bonjour {user.nameuser || user.username} !</p>
+
                 <div
                   style={{
                     display: "flex",
@@ -318,7 +317,7 @@ const Login = () => {
                   </p>
                   <p>1 bitSim's = 5 euros dépensés</p>
                   <p>
-                    Points de fidélité cumulés :
+                    Points de fidélité cumulés :{" "}
                     <strong>{pointsCumules.toFixed(2)}</strong> bitSim's
                   </p>
                   <p>
@@ -326,7 +325,7 @@ const Login = () => {
                     bitSim's
                   </p>
                   <p>
-                    Points de fidélité disponibles :
+                    Points de fidélité disponibles :{" "}
                     <strong>
                       {(pointsDisponibles > 0 ? pointsDisponibles : 0).toFixed(
                         2
@@ -336,18 +335,26 @@ const Login = () => {
                   </p>
                 </div>
 
+                {/* Code de fidélité */}
                 <div className="ServiceInscriptionTitle">
                   <p>Créer votre code de fidélité</p>
-                  {valuecode.length >= 1 && (
-                    <p style={{ color: "red" }}>{codeError} </p>
+                  {codeError && (
+                    <p
+                      style={{
+                        color: codeError.includes("succès") ? "green" : "red",
+                      }}
+                    >
+                      {codeError}
+                    </p>
                   )}
                   <input
                     type="text"
-                    name=""
                     style={{ width: "270px" }}
-                    placeholder="veuillez saisir 5 chiffres"
+                    placeholder="Veuillez saisir 5 chiffres"
                     value={valuecode}
-                    onChange={(e) => setvaluecode(e.target.value)}
+                    onChange={(e) => setValuecode(e.target.value)}
+                    maxLength={5}
+                    pattern="[0-9]*"
                   />
                 </div>
                 <div
@@ -356,14 +363,14 @@ const Login = () => {
                   {valuecode.length === 5 && (
                     <Button
                       className="acceptbtn"
-                      onClick={code ? handleCode : handlechange}
+                      onClick={code ? handleCode : handleChangeCode}
                     >
                       {code ? "Confirmer" : "Changer"}
                     </Button>
                   )}
                 </div>
 
-                {/* --- HISTORIQUE --- */}
+                {/* --- HISTORIQUE DES COMMANDES --- */}
                 <div className="">
                   <div className="ServiceOption">
                     <p style={{ marginBottom: "10px" }}>
@@ -392,21 +399,16 @@ const Login = () => {
                               <th>Prix</th>
                               <th>N° commande</th>
                               <th>Points fidélité</th>
-                              {
-                                (usercommande.type = "livraison" && (
-                                  <th>Adresse de livraison</th>
-                                ))
-                              }
+                              {usercommande.some(
+                                (cmd) => cmd.type === "livraison"
+                              ) && <th>Adresse de livraison</th>}
                               <th>Supprimer</th>
                             </tr>
                           </thead>
                           <tbody>
                             {usercommande.map((commande, cIndex) =>
                               commande.items.map((item, iIndex) => (
-                                <tr
-                                  id="btnligne"
-                                  key={`${commande.id}-${iIndex}`}
-                                >
+                                <tr key={`${commande.id}-${iIndex}`}>
                                   <td>
                                     {new Date(commande.date).toLocaleString(
                                       "fr-FR",
@@ -417,7 +419,6 @@ const Login = () => {
                                         year: "numeric",
                                         hour: "2-digit",
                                         minute: "2-digit",
-                                        second: "2-digit",
                                       }
                                     )}
                                   </td>
@@ -445,12 +446,10 @@ const Login = () => {
                                     )}{" "}
                                     bitSim's
                                   </td>
-                                  {
-                                    (usercommande.type = "livraison" && (
-                                      <td>{item.adresse}</td>
-                                    ))
-                                  }
-                                  <td id="btnpaiement">
+                                  {commande.type === "livraison" && (
+                                    <td>{item.adresse || "Non spécifiée"}</td>
+                                  )}
+                                  <td>
                                     <Button
                                       className="rejectbtn"
                                       onClick={() => handleClickdelete(cIndex)}
@@ -468,9 +467,13 @@ const Login = () => {
                   )}
                 </div>
 
-                <p style={{ cursor: "pointer" }} onClick={handleLogout}>
+                <Button
+                  onClick={handleLogout}
+                  className="rejectbtn"
+                  style={{ marginTop: "20px" }}
+                >
                   Se déconnecter
-                </p>
+                </Button>
               </div>
             )}
           </div>
@@ -478,26 +481,24 @@ const Login = () => {
       </div>
 
       {/* --- DIALOG SUPPRESSION --- */}
-      {open10 && (
-        <Dialog open={open10} onClose={handleClose} className="custom-dialog">
-          <DialogContent>
-            <DialogContentText id="alert-dialog-description">
-              <p>Ton burger, ton kiff, ton Sim'sburger 🍔</p>
-            </DialogContentText>
-            <DialogContentText id="messageConfirm">
-              <p>Voulez-vous vraiment supprimer cette commande ?</p>
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions className="DialogActions">
-            <Button onClick={handleClose} className="rejectbtn">
-              Annuler
-            </Button>
-            <Button autoFocus className="nextbtn" onClick={handleConfirmDelete}>
-              Confirmer la suppression
-            </Button>
-          </DialogActions>
-        </Dialog>
-      )}
+      <Dialog open={open10} onClose={handleClose} className="custom-dialog">
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            <p>Ton burger, ton kiff, ton Sim'sburger 🍔</p>
+          </DialogContentText>
+          <DialogContentText id="messageConfirm">
+            <p>Voulez-vous vraiment supprimer cette commande ?</p>
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions className="DialogActions">
+          <Button onClick={handleClose} className="rejectbtn">
+            Annuler
+          </Button>
+          <Button autoFocus className="nextbtn" onClick={handleConfirmDelete}>
+            Confirmer la suppression
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

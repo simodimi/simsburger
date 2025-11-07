@@ -2,6 +2,7 @@ import React, { createContext, useState, useContext, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 const AuthContextUser = createContext();
+import { toast } from "react-toastify";
 export const useAuth = () => {
   const context = useContext(AuthContextUser);
   if (!context) throw new Error("useAuth must be used within an AuthProvider");
@@ -21,9 +22,10 @@ export const AuthProviderUser = ({ children }) => {
       const res = await axios.get("http://localhost:5000/user/verify/token", {
         withCredentials: true,
       });
-      if (res.data.valid) setuser(res.data.user);
+      if (res.data.valid || res.data.user) setuser(res.data.user);
       else setuser(null);
-    } catch {
+    } catch (error) {
+      console.error("Erreur de vérification du token", error);
       setuser(null);
     } finally {
       setLoading(false);
@@ -36,12 +38,24 @@ export const AuthProviderUser = ({ children }) => {
 
   // Connexion → backend place le cookie httpOnly
   const login = async (email, password) => {
-    const res = await axios.post(
-      "http://localhost:5000/user/login",
-      { mailuser: email, passworduser: password },
-      { withCredentials: true }
-    );
-    setuser(res.data);
+    try {
+      const res = await axios.post(
+        "http://localhost:5000/user/login",
+        { mailuser: email, passworduser: password },
+        { withCredentials: true }
+      );
+      if (res.status === 200) {
+        setuser(res.data);
+        toast.success("Connexion réussie !");
+        return res.data;
+      } else {
+        throw new Error(res.data.message || "Erreur de connexion");
+      }
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || "Erreur de connexion";
+      throw error;
+    }
   };
 
   // Déconnexion → suppression du cookie serveur

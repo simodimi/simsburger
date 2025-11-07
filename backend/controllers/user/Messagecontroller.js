@@ -17,6 +17,9 @@ const createMessage = async (req, res) => {
         .json({ message: "Veuillez entrer une adresse email valide" });
     }
     const newMessage = await Message.create({ email_service, messageService });
+    if (global.io) {
+      global.io.to("messages_room").emit("new_message", newMessage);
+    }
     return res.status(200).json(newMessage);
   } catch (error) {
     console.error("Erreur createMessage:", error);

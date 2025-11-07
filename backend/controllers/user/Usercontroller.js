@@ -7,12 +7,21 @@ const { NOEXPAND } = require("sequelize/lib/table-hints");
 
 //générer un token jwt
 const generateToken = (user) => {
-  return jwt.sign({
-    iduser: user.iduser,
-    mailuser: user.mailuser,
-    nameuser: user.nameuser,
-  });
+  return jwt.sign(
+    {
+      iduser: user.iduser,
+      mailuser: user.mailuser,
+      nameuser: user.nameuser,
+    },
+    process.env.JWT_SECRET_USER,
+    { expiresIn: "5h" }
+  );
 };
+//utilitaire pour l'envoi des mails
+const mailjet = new Mailjet({
+  apiKey: process.env.EMAIL_USER,
+  apiSecret: process.env.EMAIL_PASSWORD,
+});
 //créer un utilisateur
 const createUser = async (req, res) => {
   try {
@@ -44,6 +53,25 @@ const createUser = async (req, res) => {
       mailuser,
       passworduser: hashedPassword,
       validationToken: token,
+    });
+    //envoyer l'email de confirmation
+
+    // Option: envoyer un email de confirmation à l'user validé
+    await mailjet.post("send", { version: "v3.1" }).request({
+      Messages: [
+        {
+          From: { Email: process.env.SUPERADMIN_EMAIL, Name: "Sim'sburger" },
+          To: [{ Email: newUser.mailuser, Name: newUser.nameuser }],
+          Subject: "Compte crée avec succès",
+          HTMLPart: `
+           <div style="text-align: center;">
+              <h1 style="margin-bottom: 10px;">Sim'burger</h1>
+              <img src="http://localhost:5000/public/logo/logo.png" alt="Logo" style="width: 90px; height: 90px;" />
+              </div>
+              
+          <p>Bonjour ${newUser.nameuser}, votre compte a été crée avec succès.</p>`,
+        },
+      ],
     });
     //renvoyer les données de l'utilisateur en excluant le mot de passe
     return res.status(201).json({
@@ -102,29 +130,11 @@ const loginUser = async (req, res) => {
 const validateUserByToken = async (req, res) => {
   try {
     const { token } = req.params;
-    const user = await Admin.findOne({ where: { validationToken: token } });
+    const user = await User.findOne({ where: { validationToken: token } });
     if (!user)
       return res.status(404).send("Lien invalide ou utilisateur introuvable");
     user.validationToken = null;
     await user.save();
-
-    // Option: envoyer un email de confirmation à l'user validé
-    await Mailjet.post("send", { version: "v3.1" }).request({
-      Messages: [
-        {
-          From: { Email: process.env.SUPERADMIN_EMAIL, Name: "Sim'sburger" },
-          To: [{ Email: user.mailuser, Name: user.nameuser }],
-          Subject: "Compte crée avec succès",
-          HTMLPart: `
-           <div style="text-align: center;">
-              <h1 style="margin-bottom: 10px;">Sim'burger</h1>
-              <img src="http://localhost:5000/public/logo/logo.png" alt="Logo" style="width: 90px; height: 90px;" />
-              </div>
-              
-          <p>Bonjour ${user.nameuser}, votre compte a été crée avec succès.</p>`,
-        },
-      ],
-    });
 
     // redirige ou message
     return res.send("Compte activé avec succès !");
@@ -216,11 +226,11 @@ const updateuser = async (req, res) => {
     res.status(500).json({ message: "une erreur est survenue" });
   }
 };
-// --- checkTokenValidity : renvoie les données admin fraîches ---
+// --- checkTokenValidity : renvoie les données admin fraîches ---jw
 const checkTokenValidity = async (req, res) => {
   try {
     // Ici verifyToken a déjà été exécuté (middleware), et req.admin est present
-    const user = await User.findByPk(req.admin.iduser, {
+    const user = await User.findByPk(req.user.iduser, {
       attributes: ["iduser", "nameuser", "mailuser"],
     });
     if (!user) {
@@ -263,7 +273,7 @@ const forgotPassword = async (req, res) => {
     //nettoyer les codes temporairements expirés
     cleanExpiredCodes();
     // Envoyer l’email
-    await Mailjet.post("send", { version: "v3.1" }).request({
+    await mailjet.post("send", { version: "v3.1" }).request({
       Messages: [
         {
           From: { Email: process.env.SUPERADMIN_EMAIL, Name: "Sim'sburger" },
@@ -386,7 +396,7 @@ const verifyToken = async (req, res, next) => {
       return res.status(401).json({ message: "Token manquant" });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_USER);
 
     // Vérifier que l'admin existe toujours et est actif
     const user = await User.findByPk(decoded.iduser);

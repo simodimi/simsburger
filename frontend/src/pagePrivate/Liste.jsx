@@ -43,8 +43,6 @@ const Liste = () => {
       }
     };
     update();
-    const interval = setInterval(update, 5000); // Mettre à jour toutes les 5 secondes
-    return () => clearInterval(interval);
   }, []);
 
   const handleSearch = (e) => {
