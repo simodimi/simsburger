@@ -32,6 +32,9 @@ const createOrderitem = async (req, res) => {
         });
       })
     );
+    if (global.io) {
+      global.io.to("orders_room").emit("new_orderitems", createOrders);
+    }
     res.status(200).json(createOrders);
   } catch (error) {
     res.status(500).json({ error: error.message });

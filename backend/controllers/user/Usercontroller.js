@@ -13,7 +13,7 @@ const generateToken = (user) => {
       mailuser: user.mailuser,
       nameuser: user.nameuser,
     },
-    process.env.JWT_SECRET_USER,
+    process.env.JWT_SECRET,
     { expiresIn: "5h" }
   );
 };
@@ -108,8 +108,8 @@ const loginUser = async (req, res) => {
     // Cookie options : secure en production, httpOnly, sameSite Strict
     const cookieOptions = {
       httpOnly: true,
-      secure: true, // true en prod (HTTPS)
-      sameSite: "None",
+      secure: process.env.NODE_ENV === "production", // true en prod (HTTPS)
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
       maxAge: 5 * 60 * 60 * 1000, // 5h
       // domain: process.env.COOKIE_DOMAIN // optionnel si besoin
     };
@@ -396,7 +396,7 @@ const verifyToken = async (req, res, next) => {
       return res.status(401).json({ message: "Token manquant" });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET_USER);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     // Vérifier que l'admin existe toujours et est actif
     const user = await User.findByPk(decoded.iduser);

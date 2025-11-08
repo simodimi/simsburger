@@ -17,6 +17,7 @@ import isoWeek from "dayjs/plugin/isoWeek";
 dayjs.extend(isoWeek);
 import axios from "../../pagePrivate/Utils";
 import "../../styles/adminkey.css";
+import { io } from "socket.io-client";
 
 const Key = () => {
   const [orders, setOrders] = useState([]);
@@ -26,6 +27,36 @@ const Key = () => {
   const [revenueSummary, setRevenueSummary] = useState([]);
   const [ordersSummary, setOrdersSummary] = useState([]);
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28"];
+
+  const [socket, setSocket] = useState(null);
+  //mis a jour à l'instant
+  useEffect(() => {
+    // Initialiser la connexion Socket.io
+    const newSocket = io("http://localhost:5000", {
+      withCredentials: true,
+    });
+
+    setSocket(newSocket);
+
+    // Rejoindre la room des messages
+    newSocket.emit("join_orders_room");
+
+    // Écouter les mises à jour de sms en temps réel
+    newSocket.on("new_orderitems", (data) => {
+      setOrders((prev) => [data, ...prev]);
+      computeStats([data, ...orders]);
+    });
+
+    // Gestion des erreurs
+    newSocket.on("connect_error", (error) => {
+      console.error("❌ Erreur connexion Socket.io:", error);
+    });
+
+    return () => {
+      newSocket.emit("leave_orders_room");
+      newSocket.disconnect();
+    };
+  }, []);
 
   useEffect(() => {
     const update = async () => {

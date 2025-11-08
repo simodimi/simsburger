@@ -27,6 +27,7 @@ const ProtectedRouteUser = ({ children }) => {
       toastId: "auth-error", //evite les doublons
     });
     // Rediriger vers la page de connexion
+
     return <Navigate to="/connecter" state={{ from: location }} replace />;
   }
 

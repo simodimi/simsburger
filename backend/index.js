@@ -57,7 +57,7 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // Gestion des connexions Socket.io
-io.on("connection", (socket) => {
+/*io.on("connection", (socket) => {
   console.log("🔌 Client connecté:", socket.id);
 
   socket.on("disconnect", () => {
@@ -74,6 +74,33 @@ io.on("connection", (socket) => {
   // Messages utilisateurs
   socket.on("join_messages_room", () => socket.join("messages_room"));
   socket.on("leave_messages_room", () => socket.leave("messages_room"));
+  //gestion des commandes
+  socket.on("join_orders_room", () => socket.join("orders_room"));
+  socket.on("leave_orders_room", () => socket.leave("orders_room"));
+});*/
+io.on("connection", (socket) => {
+  // Déconnexion du client
+  socket.on("disconnect", () => {
+    // Tu peux mettre ici du code à exécuter quand un client se déconnecte
+    // Exemple : retirer l’utilisateur d’une liste en mémoire, mettre à jour un statut, etc.
+  });
+
+  // Gestion activation/désactivation produits
+  socket.on("join_products", () => {
+    socket.join("products_room");
+  });
+
+  socket.on("leave_products", () => {
+    socket.leave("products_room");
+  });
+
+  // Messages utilisateurs
+  socket.on("join_messages_room", () => socket.join("messages_room"));
+  socket.on("leave_messages_room", () => socket.leave("messages_room"));
+
+  // Gestion des commandes
+  socket.on("join_orders_room", () => socket.join("orders_room"));
+  socket.on("leave_orders_room", () => socket.leave("orders_room"));
 });
 
 // Exporter io pour l'utiliser dans les controllers

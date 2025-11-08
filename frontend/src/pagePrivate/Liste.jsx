@@ -4,11 +4,42 @@ import Button from "../components/Button";
 import jsPDF from "jspdf";
 import logo from "../assets/logo/logo.png";
 import axios from "../pagePrivate/Utils";
+import { io } from "socket.io-client";
 
 const Liste = () => {
   const [orders, setOrders] = useState([]);
   const [search, setSearch] = useState("");
   const [filteredData, setFilteredData] = useState([]);
+
+  const [socket, setSocket] = useState(null);
+  //mis a jour à l'instant
+  useEffect(() => {
+    // Initialiser la connexion Socket.io
+    const newSocket = io("http://localhost:5000", {
+      withCredentials: true,
+    });
+
+    setSocket(newSocket);
+
+    // Rejoindre la room des messages
+    newSocket.emit("join_orders_room");
+
+    // Écouter les mises à jour de sms en temps réel
+    newSocket.on("new_orderitems", (data) => {
+      setOrders((prev) => [data, ...prev]);
+      setFilteredData((prev) => [data, ...prev]);
+    });
+
+    // Gestion des erreurs
+    newSocket.on("connect_error", (error) => {
+      console.error("❌ Erreur connexion Socket.io:", error);
+    });
+
+    return () => {
+      newSocket.emit("leave_orders_room");
+      newSocket.disconnect();
+    };
+  }, []);
 
   useEffect(() => {
     const update = async () => {

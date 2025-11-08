@@ -230,18 +230,18 @@ const New = ({
       id: orderId,
       //items: cart,
       date: new Date().toISOString(),
-      total: total,
+      total: parseFloat(total.toFixed(2)),
       items: cart.map((item) => ({
         product_id: item.id,
         names: item.text,
-        quantity: item.quantity,
-        price: item.prix,
+        quantity: parseInt(item.quantity),
+        price: parseFloat(item.prix.toFixed(2)), // Arrondir le prix item.prix,
         type: "sur place",
         isCustom: item.isCustom,
         removedItems: item.removedItems,
         customItems: item.customItems,
         order_id: orderId,
-        total_revenue: item.prix * item.quantity, // Calculé ici
+        total_revenue: parseFloat((item.prix * item.quantity).toFixed(2)), // item.prix * item.quantity, // Calculé ici
         product_name: item.text, // Pour cohérence
         order_date: new Date().toISOString(),
       })),
@@ -277,18 +277,18 @@ const New = ({
       id: orderId,
       //items: cart,
       date: new Date().toISOString(),
-      total: total,
+      total: parseFloat(total.toFixed(2)),
       items: cart.map((item) => ({
         product_id: item.id,
         names: item.text,
-        quantity: item.quantity,
-        price: item.prix,
+        quantity: parseInt(item.quantity),
+        price: parseFloat(item.prix.toFixed(2)),
         type: "emporter",
         isCustom: item.isCustom,
         removedItems: item.removedItems,
         customItems: item.customItems,
         order_id: orderId,
-        total_revenue: item.prix * item.quantity, // Calculé ici
+        total_revenue: parseFloat((item.prix * item.quantity).toFixed(2)), // Calculé ici
         product_name: item.text, // Pour cohérence
         order_date: new Date().toISOString(),
       })),
@@ -328,18 +328,18 @@ const New = ({
         adresse: `${formValues.numerovoie} ${formValues.nomrue}, ${formValues.ville}`,
         telephone: formValues.phone,
       },
-      total: total + deliveryFee,
+      total: parseFloat((total + deliveryFee).toFixed(2)),
       items: cart.map((item) => ({
         product_id: item.id,
         names: item.text,
-        quantity: item.quantity,
-        price: item.prix,
+        quantity: parseInt(item.quantity),
+        price: parseFloat(item.prix.toFixed(2)),
         type: "livraison",
         isCustom: item.isCustom,
         removedItems: item.removedItems,
         customItems: item.customItems,
         order_id: orderId,
-        total_revenue: item.prix * item.quantity, // Calculé ici
+        total_revenue: parseFloat((item.prix * item.quantity).toFixed(2)), // Calculé ici
         product_name: item.text, // Pour cohérence
         order_date: new Date().toISOString(),
         //ajout

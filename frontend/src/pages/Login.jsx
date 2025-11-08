@@ -12,7 +12,7 @@ import DialogContentText from "@mui/material/DialogContentText";
 import { toast } from "react-toastify";
 import { useAuth } from "./AuthContextUser";
 import axios from "axios";
-
+import { io } from "socket.io-client";
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -32,26 +32,40 @@ const Login = () => {
   const [pointsUtilises, setPointsUtilises] = useState(0);
   const [pointsDisponibles, setPointsDisponibles] = useState(0);
 
-  // Récupération des points seulement si l'utilisateur est connecté
+  const [socket, setSocket] = useState(null);
+  //mis a jour à l'instant
   useEffect(() => {
-    const fetchPoints = async () => {
-      if (!isAuthenticated) return;
+    const newSocket = io("http://localhost:5000", { withCredentials: true });
+    setSocket(newSocket);
 
-      try {
-        const res = await axios.get("http://localhost:5000/user/points");
-        setPointsCumules(Number(res.data.pointscumules));
-        setPointsUtilises(Number(res.data.pointsutilises));
-        setPointsDisponibles(Number(res.data.pointsrestant));
-      } catch (error) {
-        console.error("Erreur lors de la récupération des points :", error);
-        // Si erreur 401, l'utilisateur n'est probablement pas connecté
-        if (error.response?.status === 401) {
-          console.log("Utilisateur non authentifié pour récupérer les points");
+    newSocket.emit("join_orders_room");
+
+    // Quand une nouvelle commande arrive
+    newSocket.on("new_orderitems", async (data) => {
+      const newOrders = Array.isArray(data) ? data : [data];
+      setUsercommande((prev) => [...newOrders, ...prev]);
+
+      // 🔁 Met à jour les points en temps réel
+      if (isAuthenticated) {
+        try {
+          const res = await axios.get("http://localhost:5000/user/points");
+          setPointsCumules(Number(res.data.pointscumules));
+          setPointsUtilises(Number(res.data.pointsutilises));
+          setPointsDisponibles(Number(res.data.pointsrestant));
+        } catch (error) {
+          console.error("Erreur lors de la mise à jour des points :", error);
         }
       }
-    };
+    });
 
-    fetchPoints();
+    newSocket.on("connect_error", (error) => {
+      console.error("❌ Erreur connexion Socket.io:", error);
+    });
+
+    return () => {
+      newSocket.emit("leave_orders_room");
+      newSocket.disconnect();
+    };
   }, [isAuthenticated]);
 
   // toggle de l'historique
@@ -185,9 +199,9 @@ const Login = () => {
       setMsgerrortext("");
       setDatauser({ mailuser: "", passworduser: "" });
 
-      // Redirection après connexion réussie
-      const from = location.state?.from?.pathname || "/carte";
-      navigate(from, { replace: true });
+      // Redirection vers la page précédente avant la connexion
+      //const previousPath = location.state?.prev || "/carte";
+      // navigate(previousPath, { replace: true });
     } catch (err) {
       const msg = err.response?.data?.message || "Erreur de connexion";
       setMsgerror(true);
