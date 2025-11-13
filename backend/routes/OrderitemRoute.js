@@ -7,4 +7,6 @@ router.get("/", Orderitemcontroller.getAllOrderitems);
 router.post("/", Orderitemcontroller.createOrderitem);
 //suppression de orderitems:
 router.delete("/:id", Orderitemcontroller.deleteOrderitem);
+//suppression des orderitems par order_id
+router.delete("/order/:orderId", Orderitemcontroller.deleteOrderByOrderId);
 module.exports = router;

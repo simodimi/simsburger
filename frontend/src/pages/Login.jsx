@@ -27,7 +27,6 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [open10, setOpen10] = useState(false);
   const [indexToDelete, setIndexToDelete] = useState(null);
-
   const [pointsCumules, setPointsCumules] = useState(0);
   const [pointsUtilises, setPointsUtilises] = useState(0);
   const [pointsDisponibles, setPointsDisponibles] = useState(0);
@@ -49,9 +48,12 @@ const Login = () => {
       if (isAuthenticated) {
         try {
           const res = await axios.get("http://localhost:5000/user/points");
-          setPointsCumules(Number(res.data.pointscumules));
-          setPointsUtilises(Number(res.data.pointsutilises));
-          setPointsDisponibles(Number(res.data.pointsrestant));
+          setPointsCumules(parseFloat(res.data.pointscumules));
+          setPointsUtilises(parseFloat(res.data.pointsutilises));
+          setPointsDisponibles(
+            parseFloat(res.data.pointscumules) -
+              parseFloat(res.data.pointsutilises)
+          );
         } catch (error) {
           console.error("Erreur lors de la mise à jour des points :", error);
         }
@@ -88,7 +90,7 @@ const Login = () => {
     setIndexToDelete(null);
   };
 
-  const handleConfirmDelete = async () => {
+  /* const handleConfirmDelete = async () => {
     if (indexToDelete !== null) {
       const commandeASupprimer = usercommande[indexToDelete];
       if (commandeASupprimer.pointsUtilises) {
@@ -104,7 +106,7 @@ const Login = () => {
       try {
         // Vous devez avoir l'ID de la commande pour la suppression
         // const id = commandeASupprimer.id;
-        // await axios.delete(`http://localhost:5000/orderitem/${id}`);
+        await axios.delete(`http://localhost:5000/orderitem/${id}`);
         setUsercommande((prev) => prev.filter((_, i) => i !== indexToDelete));
         toast.success("Commande supprimée avec succès");
       } catch (error) {
@@ -112,6 +114,40 @@ const Login = () => {
         toast.error("Erreur lors de la suppression");
       }
     }
+    handleClose();
+  };*/
+  const handleConfirmDelete = async () => {
+    if (indexToDelete === null) return;
+    const commandeASupprimer = usercommande[indexToDelete];
+    console.log("ID de la commande à supprimer :", commandeASupprimer.id);
+
+    try {
+      const res = await axios.delete(
+        `http://localhost:5000/orderitem/order/${commandeASupprimer.id}`
+      );
+
+      // Vérifie la réponse avant d'afficher quoi que ce soit
+      if (res.status === 200 && res.data?.success) {
+        // Supprimer la commande du state
+        setUsercommande((prev) => prev.filter((_, i) => i !== indexToDelete));
+
+        // Met à jour les points
+        if (isAuthenticated) {
+          const pts = await axios.get("http://localhost:5000/user/points");
+          setPointsCumules(parseFloat(pts.data.pointscumules) || 0);
+          setPointsUtilises(parseFloat(pts.data.pointsutilises) || 0);
+          setPointsDisponibles(parseFloat(pts.data.pointsrestant) || 0);
+        }
+
+        toast.success(res.data.message || "Commande supprimée avec succès ✅");
+      } else {
+        toast.error(res.data?.message || "Erreur lors de la suppression");
+      }
+    } catch (error) {
+      console.error("❌ Erreur lors de la suppression :", error);
+      toast.error("Erreur lors de la suppression ❌");
+    }
+
     handleClose();
   };
 
@@ -242,6 +278,46 @@ const Login = () => {
     fetchOrders();
   }, [isAuthenticated]);
 
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setPointsCumules(0);
+      setPointsUtilises(0);
+      setPointsDisponibles(0);
+      return;
+    }
+
+    const fetchPoints = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/user/points", {
+          withCredentials: true,
+        });
+
+        //S'assurer que les valeurs sont bien des nombres
+        const cumules = parseFloat(res.data.pointscumules || 0);
+        const utilises = parseFloat(res.data.pointsutilises || 0);
+        const restant = cumules - utilises;
+
+        setPointsCumules(cumules);
+        setPointsUtilises(utilises);
+        setPointsDisponibles(restant);
+      } catch (err) {
+        console.error("❌ Erreur récupération points:", err);
+        console.error("📋 Détails de l'erreur:", {
+          message: err.message,
+          status: err.response?.status,
+          data: err.response?.data,
+          url: err.config?.url,
+        });
+        // Réinitialiser en cas d'erreur
+        setPointsCumules(0);
+        setPointsUtilises(0);
+        setPointsDisponibles(0);
+      }
+    };
+
+    fetchPoints();
+  }, [isAuthenticated]);
+
   return (
     <div className="shoppingService">
       <div className="Service">
@@ -315,7 +391,7 @@ const Login = () => {
             {/* --- SECTION UTILISATEUR CONNECTÉ --- */}
             {isAuthenticated && user && (
               <div className="loginUser">
-                <p>Bonjour {user.nameuser || user.username} !</p>
+                <p>Bonjour {user.nameuser || "Utilisateur"} !</p>
 
                 <div
                   style={{
@@ -420,60 +496,143 @@ const Login = () => {
                             </tr>
                           </thead>
                           <tbody>
-                            {usercommande.map((commande, cIndex) =>
-                              commande.items.map((item, iIndex) => (
-                                <tr key={`${commande.id}-${iIndex}`}>
-                                  <td>
-                                    {new Date(commande.date).toLocaleString(
-                                      "fr-FR",
-                                      {
-                                        weekday: "long",
-                                        day: "numeric",
-                                        month: "long",
-                                        year: "numeric",
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                      }
-                                    )}
-                                  </td>
-                                  <td>
-                                    {item.text}
-                                    {item.isCustom && (
-                                      <span
-                                        style={{
-                                          color: "blue",
-                                          fontWeight: "bold",
-                                        }}
-                                      >
-                                        (personnalisé)
-                                      </span>
-                                    )}
-                                  </td>
-                                  <td>{item.quantity}</td>
-                                  <td>
-                                    {(item.prix * item.quantity).toFixed(2)} €
-                                  </td>
-                                  <td>{commande.id}</td>
-                                  <td>
-                                    {((item.prix * item.quantity) / 5).toFixed(
-                                      2
-                                    )}{" "}
-                                    bitSim's
-                                  </td>
-                                  {commande.type === "livraison" && (
-                                    <td>{item.adresse || "Non spécifiée"}</td>
+                            {usercommande.map((commande, cIndex) => (
+                              <tr key={commande.id}>
+                                <td>
+                                  {new Date(commande.date).toLocaleString(
+                                    "fr-FR",
+                                    {
+                                      weekday: "long",
+                                      day: "numeric",
+                                      month: "long",
+                                      year: "numeric",
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    }
                                   )}
-                                  <td>
-                                    <Button
-                                      className="rejectbtn"
-                                      onClick={() => handleClickdelete(cIndex)}
+                                </td>
+                                <td>
+                                  {/* Afficher tous les articles de la commande groupée */}
+                                  {commande.items.map((item, iIndex) => (
+                                    <div
+                                      key={iIndex}
+                                      style={{
+                                        marginBottom: "10px",
+                                        padding: "5px",
+                                        borderBottom: "1px solid #eee",
+                                      }}
                                     >
-                                      Supprimer
-                                    </Button>
+                                      <strong>
+                                        {item.names || "Article sans nom"}
+                                      </strong>
+                                      {item.isCustom && (
+                                        <span
+                                          style={{
+                                            color: "blue",
+                                            fontWeight: "bold",
+                                          }}
+                                        >
+                                          {" "}
+                                          (personnalisé)
+                                        </span>
+                                      )}
+                                      <div>Quantité: {item.quantity}</div>
+                                      <div>
+                                        Prix:{" "}
+                                        {(item.price * item.quantity).toFixed(
+                                          2
+                                        )}{" "}
+                                        €
+                                      </div>
+
+                                      {/* Détails de personnalisation */}
+                                      {item.isCustom && (
+                                        <div
+                                          style={{
+                                            fontSize: "0.8rem",
+                                            marginTop: "5px",
+                                          }}
+                                        >
+                                          {item.customItems &&
+                                            item.customItems.length > 0 && (
+                                              <div style={{ color: "green" }}>
+                                                <strong>Ajouts :</strong>
+                                                {item.customItems.map(
+                                                  (ci, idx) =>
+                                                    ci && (
+                                                      <div key={idx}>
+                                                        + {ci.text} (+
+                                                        {(ci.prix || 0).toFixed(
+                                                          2
+                                                        )}{" "}
+                                                        €)
+                                                      </div>
+                                                    )
+                                                )}
+                                              </div>
+                                            )}
+                                          {item.removedItems &&
+                                            item.removedItems.length > 0 && (
+                                              <div style={{ color: "red" }}>
+                                                <strong>Retraits :</strong>
+                                                {item.removedItems.map(
+                                                  (ri, idx) =>
+                                                    ri && (
+                                                      <div key={idx}>
+                                                        - {ri.text}
+                                                      </div>
+                                                    )
+                                                )}
+                                              </div>
+                                            )}
+                                        </div>
+                                      )}
+                                    </div>
+                                  ))}
+                                </td>
+                                <td>
+                                  {commande.items.reduce(
+                                    (sum, item) => sum + item.quantity,
+                                    0
+                                  )}
+                                </td>
+                                <td>
+                                  {commande.items
+                                    .reduce(
+                                      (sum, item) =>
+                                        sum + item.price * item.quantity,
+                                      0
+                                    )
+                                    .toFixed(2)}{" "}
+                                  €
+                                </td>
+                                <td>{commande.id}</td>
+                                <td>
+                                  {(
+                                    commande.items.reduce(
+                                      (sum, item) =>
+                                        sum + item.price * item.quantity,
+                                      0
+                                    ) / 5
+                                  ).toFixed(2)}{" "}
+                                  bitSim's
+                                </td>
+                                {commande.type === "livraison" && (
+                                  <td>
+                                    {commande.items[0]?.adresse ||
+                                      "Non spécifiée"}
                                   </td>
-                                </tr>
-                              ))
-                            )}
+                                )}
+                                <td>
+                                  <Button
+                                    className="rejectbtn"
+                                    onClick={() => handleClickdelete(cIndex)}
+                                  >
+                                    Supprimer
+                                  </Button>
+                                </td>
+                              </tr>
+                            ))}
                           </tbody>
                         </table>
                       )}

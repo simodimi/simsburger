@@ -80,4 +80,32 @@ const deleteOrderitem = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-module.exports = { createOrderitem, getAllOrderitems, deleteOrderitem };
+// backend/controllers/user/Orderitemcontroller.js
+const deleteOrderByOrderId = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const deleted = await Orderitem.destroy({ where: { order_id: orderId } });
+
+    if (deleted === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Commande introuvable" });
+    }
+
+    // Réponse toujours explicite avec code 200 et JSON
+    return res.status(200).json({
+      success: true,
+      message: `Commande ${orderId} supprimée avec succès`,
+    });
+  } catch (error) {
+    console.error("Erreur suppression :", error);
+    return res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+module.exports = {
+  createOrderitem,
+  getAllOrderitems,
+  deleteOrderitem,
+  deleteOrderByOrderId,
+};

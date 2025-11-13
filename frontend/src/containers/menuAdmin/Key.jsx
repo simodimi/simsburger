@@ -108,7 +108,7 @@ const Key = () => {
       const ordersInDay = data.filter(
         (o) =>
           dayjs(o.date).isoWeek() === today.isoWeek() &&
-          dayjs(o.date).day() === idx + 1
+          dayjs(o.date).isoWeekday() === idx + 1
       );
 
       const revenue = ordersInDay.reduce((sum, o) => sum + getRevenue(o), 0);

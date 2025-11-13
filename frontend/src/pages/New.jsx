@@ -13,15 +13,11 @@ import { jsPDF } from "jspdf";
 import liv from "../assets/logo/liv.png";
 import sleep from "../assets/icone/sleep.gif";
 import axios from "../pagePrivate/Utils";
+import { toast } from "react-toastify";
 import { useAuth } from "../pages/AuthContextUser";
+import { use } from "react";
 
-const New = ({
-  setusercommande,
-  codereduction,
-  pointsCumules,
-  pointsUtilises,
-  setAllOrders,
-}) => {
+const New = () => {
   const navigate = useNavigate();
   const handleback = () => {
     navigate(-1);
@@ -32,8 +28,10 @@ const New = ({
   const [error, seterror] = useState(false);
   const { isAuthenticated } = useAuth();
   const [msgerror, setmsgerror] = useState("");
-  // État LOCAL pour la réduction en cours
-  const [pointsAReduire, setPointsAReduire] = useState(0);
+  const [total, settotal] = useState(0);
+  const [drive, setdrive] = useState(false);
+  const [codeInput, setCodeInput] = useState("");
+
   // Si user non connecté → affiche le message open4
   const handleProtectedAction = (callback) => {
     if (!isAuthenticated) {
@@ -148,41 +146,118 @@ const New = ({
     (sum, item) => sum + calculateItemTotal(item),
     0
   );
-  const pointsDisponibles = pointsCumules - (pointsUtilises || 0);
+  useEffect(() => {
+    const calculateCurrentTotal = async () => {
+      // Si pas connecté OU pas de code de réduction actif → total = soustotal
+      if (!isAuthenticated || !codeInput || codeInput.length < 5) {
+        settotal(soustotal);
+        return;
+      }
+
+      try {
+        const pointsResponse = await axios.get(
+          `http://localhost:5000/user/points`,
+          { withCredentials: true }
+        );
+
+        const pointscumules =
+          parseFloat(pointsResponse.data.pointscumules) || 0;
+        const pointsutilises =
+          parseFloat(pointsResponse.data.pointsutilises) || 0;
+        const pointsrestants = pointscumules - pointsutilises;
+
+        // Appliquer la réduction seulement si code valide
+        const nouveauTotal = Math.max(0, soustotal - pointsrestants);
+        settotal(nouveauTotal);
+      } catch (error) {
+        console.error("Erreur récupération points:", error);
+        settotal(soustotal);
+      }
+    };
+
+    calculateCurrentTotal();
+  }, [cart, soustotal, isAuthenticated, codeInput]); // Ajouter codeInput
   //gestion de la réduction
+
   const handlereduction = async (e) => {
     const code = e.target.value.trim();
-    if (code.length === 0) {
-      seterror(false);
-      setmsgerror("");
+    setCodeInput(code);
+    seterror(false);
+    setmsgerror("");
+
+    if (!code || code.length < 5) {
       settotal(soustotal);
-      setPointsAReduire(0);
       return;
     }
+    if (!isAuthenticated) {
+      seterror(true);
+      setmsgerror("Connectez-vous pour utiliser le code de réduction");
+      toast.error("Connectez-vous pour utiliser le code de réduction");
+      settotal(soustotal);
+      return;
+    }
+
     try {
-      const response = await axios.get(`http://localhost:5000/user/updatecode`);
-      const codereduction = response.data;
-      if (code === codereduction) {
+      const response = await axios.get(
+        `http://localhost:5000/user/verifycodeuser`,
+        {
+          params: { code: code },
+          withCredentials: true,
+        }
+      );
+      const codeserver = response.data.valuecode;
+      const isValid = response.data.valid;
+
+      if (isValid && codeserver) {
         seterror(true);
-        setmsgerror("Code de réduction correcte");
-        toast.success("Code de réduction correcte");
+        setmsgerror("Code de réduction correct");
+        toast.success("Code de réduction correct");
+
         // Calcul des points disponibles
-        const pointsMaxAReduire = Math.min(pointsDisponibles, soustotal);
-        setPointsAReduire(pointsMaxAReduire);
-        settotal(Math.max(0, soustotal - pointsMaxAReduire));
+
+        const pointsResponse = await axios.get(
+          `http://localhost:5000/user/points`,
+          {
+            withCredentials: true,
+          }
+        );
+        const pointscumules =
+          parseFloat(pointsResponse.data.pointscumules) || 0;
+        const pointsutilises =
+          parseFloat(pointsResponse.data.pointsutilises) || 0;
+        const pointsrestants = pointscumules - pointsutilises;
+
+        // Calculer le nouveau total
+        const nouveauTotal = Math.max(0, soustotal - pointsrestants);
+        console.log("💰 Points à réduire:", pointsrestants);
+        settotal(nouveauTotal);
       } else {
         seterror(true);
         setmsgerror("Code de réduction invalide");
-        setPointsAReduire(0);
         settotal(soustotal);
+        toast.error("Code de réduction invalide");
       }
     } catch (error) {
-      console.error(error);
+      console.error("❌ Erreur vérification code:", error);
+
+      if (error.response) {
+        console.log("📋 Détails erreur:", {
+          status: error.response.status,
+          data: error.response.data,
+        });
+        setmsgerror(error.response.data?.message || "Erreur de vérification");
+      } else {
+        setmsgerror("Erreur de connexion au serveur");
+      }
+
+      seterror(true);
+      settotal(soustotal);
     }
   };
 
-  const [total, settotal] = useState(soustotal);
-  const [drive, setdrive] = useState(false);
+  useEffect(() => {
+    settotal(soustotal);
+  }, [soustotal]);
   //ouvrir la section livraison
   const handleDrive = () => {
     if (isClosed()) {
@@ -258,18 +333,30 @@ const New = ({
     } catch (error) {
       console.error("une erreur est survenue", error);
     }
-    try {
-      await axios.post(
-        "http://localhost:5000/user/updatePoints",
-        {
-          pointsGagnes: total / 5, // exemple : 1 point gagné par 5€ dépensés
-          pointsDepenses: pointsAReduire, // points utilisés pour réduction
-        },
-        { withCredentials: true }
-      );
-    } catch (err) {
-      console.error("Erreur mise à jour des points :", err);
+    let pointsrestants = 0;
+    if (isAuthenticated) {
+      try {
+        const pointsResponse = await axios.get(
+          `http://localhost:5000/user/points`,
+          { withCredentials: true }
+        );
+        const pointscumules =
+          parseFloat(pointsResponse.data.pointscumules) || 0;
+        const pointsutilises =
+          parseFloat(pointsResponse.data.pointsutilises) || 0;
+        pointsrestants = pointscumules - pointsutilises;
+      } catch (error) {
+        console.error("Erreur récupération points commande:", error);
+      }
     }
+    await axios.post(
+      "http://localhost:5000/user/updatePoints",
+      {
+        pointsGagnes: soustotal / 5, // exemple : 1 point gagné par 5€ dépensés
+        pointsDepenses: pointsrestants, // points utilisés pour réduction
+      },
+      { withCredentials: true }
+    );
   };
   const handleClicknext2 = async () => {
     setOpen2(true);
@@ -305,18 +392,31 @@ const New = ({
     } catch (error) {
       console.error("une erreur est survenue", error);
     }
-    try {
-      await axios.post(
-        "http://localhost:5000/user/updatePoints",
-        {
-          pointsGagnes: total / 5, // exemple : 1 point gagné par 5€ dépensés
-          pointsDepenses: pointsAReduire, // points utilisés pour réduction
-        },
-        { withCredentials: true }
-      );
-    } catch (err) {
-      console.error("Erreur mise à jour des points :", err);
+
+    let pointsrestants = 0;
+    if (isAuthenticated) {
+      try {
+        const pointsResponse = await axios.get(
+          `http://localhost:5000/user/points`,
+          { withCredentials: true }
+        );
+        const pointscumules =
+          parseFloat(pointsResponse.data.pointscumules) || 0;
+        const pointsutilises =
+          parseFloat(pointsResponse.data.pointsutilises) || 0;
+        pointsrestants = pointscumules - pointsutilises;
+      } catch (error) {
+        console.error("Erreur récupération points commande:", error);
+      }
     }
+    await axios.post(
+      "http://localhost:5000/user/updatePoints",
+      {
+        pointsGagnes: soustotal / 5, // exemple : 1 point gagné par 5€ dépensés
+        pointsDepenses: pointsrestants, // points utilisés pour réduction
+      },
+      { withCredentials: true }
+    );
   };
   const handleClicknext3 = async () => {
     setOpen3(true);
@@ -360,18 +460,30 @@ const New = ({
     } catch (error) {
       console.error("une erreur est survenue", error);
     }
-    try {
-      await axios.post(
-        "http://localhost:5000/user/updatePoints",
-        {
-          pointsGagnes: total / 5, // exemple : 1 point gagné par 5€ dépensés
-          pointsDepenses: pointsAReduire, // points utilisés pour réduction
-        },
-        { withCredentials: true }
-      );
-    } catch (err) {
-      console.error("Erreur mise à jour des points :", err);
+    let pointsrestants = 0;
+    if (isAuthenticated) {
+      try {
+        const pointsResponse = await axios.get(
+          `http://localhost:5000/user/points`,
+          { withCredentials: true }
+        );
+        const pointscumules =
+          parseFloat(pointsResponse.data.pointscumules) || 0;
+        const pointsutilises =
+          parseFloat(pointsResponse.data.pointsutilises) || 0;
+        pointsrestants = pointscumules - pointsutilises;
+      } catch (error) {
+        console.error("Erreur récupération points commande:", error);
+      }
     }
+    await axios.post(
+      "http://localhost:5000/user/updatePoints",
+      {
+        pointsGagnes: soustotal / 5, // exemple : 1 point gagné par 5€ dépensés
+        pointsDepenses: pointsrestants, // points utilisés pour réduction
+      },
+      { withCredentials: true }
+    );
   };
 
   const handleClose = () => {
@@ -398,7 +510,23 @@ const New = ({
   };
   const [orderId] = useState("A" + Math.floor(Math.random() * 1000));
   //telecharger le reçu
-  const handleDownloadReceipt = () => {
+  const handleDownloadReceipt = async () => {
+    let pointsrestants = 0;
+    if (isAuthenticated) {
+      try {
+        const pointsResponse = await axios.get(
+          `http://localhost:5000/user/points`,
+          { withCredentials: true }
+        );
+        const pointscumules =
+          parseFloat(pointsResponse.data.pointscumules) || 0;
+        const pointsutilises =
+          parseFloat(pointsResponse.data.pointsutilises) || 0;
+        pointsrestants = pointscumules - pointsutilises;
+      } catch (error) {
+        console.error("Erreur récupération points PDF:", error);
+      }
+    }
     const doc = new jsPDF();
 
     // Logo
@@ -408,7 +536,7 @@ const New = ({
 
     // Numéro de commande et date
     const today = new Date().toLocaleString();
-    const reduction = pointsAReduire;
+    const reduction = pointsrestants;
     const finalTotal = total + deliveryFee;
 
     doc.setFontSize(18);
@@ -652,7 +780,7 @@ const New = ({
     // Nettoie la chaîne pour éviter espaces ou caractères spéciaux
     const currentHour = parseInt(heurefr);
     console.log(`Heure FR: ${currentHour}h`);
-    return currentHour < 11 || currentHour >= 23;
+    return currentHour < 0 || currentHour >= 25; // 11 23
   };
   //mis à jour de l'heures
   const [timer, setTimer] = useState(
@@ -834,10 +962,13 @@ const New = ({
                   <div className="AccountUser">
                     <p>Réduction :</p>
                     <input
-                      type="number"
+                      type="text"
                       name=""
                       placeholder="code pour utiliser vos points"
+                      value={codeInput}
                       onChange={handlereduction}
+                      maxLength={5}
+                      style={{ width: "90px" }}
                     />
                   </div>
                 </div>

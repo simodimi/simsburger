@@ -21,6 +21,17 @@ router.get(
 
 // Routes protégées exemple
 router.get("/", Usercontroller.verifyToken, Usercontroller.getAllusers);
+router.get(
+  "/getvaluecode", // ← Doit correspondre à l'appel frontend
+  Usercontroller.verifyToken,
+  Usercontroller.updatevaluecode //getValuecode
+);
+router.get("/points", Usercontroller.verifyToken, Usercontroller.getUserPoints);
+router.get(
+  "/verifycodeuser",
+  Usercontroller.verifyToken,
+  Usercontroller.verifyUserCode
+);
 router.get("/:iduser", Usercontroller.verifyToken, Usercontroller.getUser);
 router.put("/:iduser", Usercontroller.verifyToken, Usercontroller.updateuser);
 router.delete(
@@ -34,24 +45,18 @@ router.post(
   Usercontroller.verifyToken,
   Usercontroller.updatevaluecode
 );
-router.get(
-  "/updatecode",
+/*router.get(
+  "/getupdatecode",
   Usercontroller.verifyToken,
-  Usercontroller.updatevaluecode
-);
+  Usercontroller.getValuecode
+);*/
 //
-router.get("/points", Usercontroller.verifyToken, Usercontroller.getUserPoints);
 
-// 🟡 Mettre à jour les points après une commande
+//  Mettre à jour les points après une commande
 router.post(
   "/updatePoints",
   Usercontroller.verifyToken,
   Usercontroller.updateUserPoints
 );
-/*// Statut (exemple)
-router.get(
-  "/status/:iduser",
-  Usercontroller.verifyToken,
-  Usercontroller.getUserStatus
-);*/
+
 module.exports = router;

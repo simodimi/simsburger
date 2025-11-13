@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const Mailjet = require("node-mailjet");
 const { NOEXPAND } = require("sequelize/lib/table-hints");
+const { parse } = require("path");
 
 //générer un token jwt
 const generateToken = (user) => {
@@ -455,13 +456,9 @@ const getUserPoints = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "Utilisateur introuvable" });
     }
-
-    const pointsrestant = user.pointscumules - user.pointsutilises;
-
     res.status(200).json({
-      pointscumules: user.pointscumules,
-      pointsutilises: user.pointsutilises,
-      pointsrestant,
+      pointscumules: parseFloat(user.pointscumules || 0),
+      pointsutilises: parseFloat(user.pointsutilises || 0),
     });
   } catch (error) {
     console.error("Erreur getUserPoints:", error);
@@ -471,6 +468,7 @@ const getUserPoints = async (req, res) => {
   }
 };
 
+// CORRECTION dans le backend (updateUserPoints)
 const updateUserPoints = async (req, res) => {
   try {
     const { pointsGagnes, pointsDepenses } = req.body;
@@ -481,24 +479,115 @@ const updateUserPoints = async (req, res) => {
       return res.status(404).json({ message: "Utilisateur introuvable" });
     }
 
-    user.pointscumules = Number(user.pointscumules) + Number(pointsGagnes || 0);
-    user.pointsutilises =
-      Number(user.pointsutilises) + Number(pointsDepenses || 0);
+    // S'assurer que les valeurs sont des nombres
+    const pointsGagnesNum = parseFloat(pointsGagnes || 0);
+    const pointsDepensesNum = parseFloat(pointsDepenses || 0);
 
-    await user.save();
+    // Mise à jour atomique pour éviter les conflits
+    await User.update(
+      {
+        pointscumules: parseFloat(user.pointscumules) + pointsGagnesNum,
+        pointsutilises: parseFloat(user.pointsutilises) + pointsDepensesNum,
+      },
+      {
+        where: { iduser: iduser },
+      }
+    );
 
-    const pointsrestant = user.pointscumules - user.pointsutilises;
+    // Récupérer l'utilisateur mis à jour
+    const updatedUser = await User.findByPk(iduser);
+
+    if (global.io) {
+      global.io.to("orders_room").emit("points_updated", {
+        iduser: updatedUser.iduser,
+        pointscumules: parseFloat(updatedUser.pointscumules || 0),
+        pointsutilises: parseFloat(updatedUser.pointsutilises || 0),
+        pointsrestant: parseFloat(
+          updatedUser.pointscumules - updatedUser.pointsutilises || 0
+        ),
+      });
+    }
+
     res.status(200).json({
-      message: "Points mis à jour avec succès",
-      pointscumules: user.pointscumules,
-      pointsutilises: user.pointsutilises,
-      pointsrestant,
+      pointscumules: updatedUser.pointscumules,
+      pointsutilises: updatedUser.pointsutilises,
+      pointsrestant: updatedUser.pointscumules - updatedUser.pointsutilises,
     });
   } catch (error) {
     console.error("Erreur updateUserPoints:", error);
     res
       .status(500)
       .json({ message: "Erreur lors de la mise à jour des points" });
+  }
+};
+// Récupérer le code de fidélité de l'utilisateur
+/*const getValuecode = async (req, res) => {
+  try {
+    const iduser = req.user.iduser;
+    const user = await User.findByPk(iduser, {
+      attributes: ["valuecode"],
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "Utilisateur introuvable" });
+    }
+
+    return res.status(200).json({ valuecode: user.valuecode });
+  } catch (error) {
+    console.error("Erreur getValuecode:", error);
+    res.status(500).json({ message: "Une erreur est survenue" });
+  }
+};*/
+const verifyUserCode = async (req, res) => {
+  try {
+    const { code } = req.query;
+    const iduser = req.user.iduser;
+    const mailuser = req.user.mailuser;
+    if (!code) {
+      return res.status(400).json({
+        valuecode: null,
+        message: "Code de fidélité manquant",
+      });
+    }
+
+    if (code.length !== 5) {
+      return res.status(400).json({
+        valuecode: null,
+        message: "Le code doit contenir 5 chiffres",
+      });
+    }
+
+    // Rechercher l'utilisateur par ID (plus sécurisé)
+    const user = await User.findByPk(iduser);
+
+    if (!user) {
+      return res.status(404).json({
+        valuecode: null,
+        message: "Utilisateur introuvable",
+      });
+    }
+    // Vérifier si le code correspond
+    const isValid = user.valuecode === code;
+    if (!isValid) {
+      return res.status(200).json({
+        valuecode: null,
+        message: "Code de fidélité incorrect",
+      });
+    }
+    // Code correct - retourner les infos
+    return res.status(200).json({
+      valuecode: user.valuecode,
+      valid: true,
+      message: "Code correct",
+      userEmail: mailuser,
+    });
+  } catch (error) {
+    console.error("❌ Erreur verifyUserCode:", error);
+    return res.status(500).json({
+      valuecode: null,
+      valid: false,
+      message: "Erreur serveur lors de la vérification",
+    });
   }
 };
 
@@ -519,4 +608,5 @@ module.exports = {
   updatevaluecode,
   getUserPoints,
   updateUserPoints,
+  verifyUserCode,
 };
