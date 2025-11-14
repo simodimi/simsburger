@@ -40,6 +40,11 @@ const Orderitem = sequelize.define("Orderitem", {
     type: DataTypes.JSON,
     defaultValue: [],
   },
+  extraPrice: {
+    type: DataTypes.DECIMAL(10, 2),
+    defaultValue: 0,
+    allowNull: true,
+  },
   total_revenue: {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: true,

@@ -75,11 +75,37 @@ const Login = () => {
     setArrow((prev) => !prev);
     setShowtable((prev) => !prev);
   };
+  /*const calculateItemTotal = (item) => {
+    const basePrice = (item.price || item.prix || 0) * (item.quantity || 1);
+    const supplements = item.extraPrice || 0;
+    return basePrice + supplements;
+  };*/
+  const calculateItemTotal = (item) => {
+    // Utiliser la même logique que dans New.jsx
+    let total = (item.prix || item.price || 0) * (item.quantity || 1);
+
+    // Si extraPrice est disponible, l'utiliser directement
+    if (item.extraPrice !== undefined && item.extraPrice !== null) {
+      total += parseFloat(item.extraPrice);
+    }
+    // Sinon, recalculer à partir des customItems
+    else if (item.isCustom && item.customItems?.length > 0) {
+      item.customItems.forEach((customItem) => {
+        const baseQty = customItem.baseQuantity || 0;
+        const currentQty = customItem.quantity || 0;
+        if (currentQty > baseQty) {
+          const supplement = currentQty - baseQty;
+          total += supplement * (customItem.prix || customItem.price || 0);
+        }
+      });
+    }
+    return total;
+  };
 
   // calcul du total global
   const totalGlobal = usercommande.reduce((sumCommande, commande) => {
     const totalCommande = commande.items.reduce(
-      (sumItem, item) => sumItem + item.prix * item.quantity,
+      (sumItem, item) => sumItem + calculateItemTotal(item),
       0
     );
     return sumCommande + totalCommande;
@@ -141,11 +167,10 @@ const Login = () => {
 
         toast.success(res.data.message || "Commande supprimée avec succès ✅");
       } else {
-        toast.error(res.data?.message || "Erreur lors de la suppression");
+        console.error("❌ Échec de la suppression :", res.data);
       }
     } catch (error) {
       console.error("❌ Erreur lors de la suppression :", error);
-      toast.error("Erreur lors de la suppression ❌");
     }
 
     handleClose();
@@ -317,6 +342,7 @@ const Login = () => {
 
     fetchPoints();
   }, [isAuthenticated]);
+  //
 
   return (
     <div className="shoppingService">
@@ -539,10 +565,7 @@ const Login = () => {
                                       <div>Quantité: {item.quantity}</div>
                                       <div>
                                         Prix:{" "}
-                                        {(item.price * item.quantity).toFixed(
-                                          2
-                                        )}{" "}
-                                        €
+                                        {calculateItemTotal(item).toFixed(2)} €
                                       </div>
 
                                       {/* Détails de personnalisation */}
@@ -597,24 +620,30 @@ const Login = () => {
                                   )}
                                 </td>
                                 <td>
-                                  {commande.items
-                                    .reduce(
+                                  {(() => {
+                                    const total = commande.items.reduce(
                                       (sum, item) =>
-                                        sum + item.price * item.quantity,
+                                        sum + (calculateItemTotal(item) || 0),
                                       0
-                                    )
-                                    .toFixed(2)}{" "}
+                                    );
+
+                                    return Number(total).toFixed(2);
+                                  })()}{" "}
                                   €
                                 </td>
                                 <td>{commande.id}</td>
                                 <td>
-                                  {(
-                                    commande.items.reduce(
+                                  {(() => {
+                                    const total = commande.items.reduce(
                                       (sum, item) =>
-                                        sum + item.price * item.quantity,
+                                        sum + (calculateItemTotal(item) || 0),
                                       0
-                                    ) / 5
-                                  ).toFixed(2)}{" "}
+                                    );
+
+                                    const points = total / 5;
+
+                                    return Number(points).toFixed(2);
+                                  })()}{" "}
                                   bitSim's
                                 </td>
                                 {commande.type === "livraison" && (

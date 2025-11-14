@@ -87,7 +87,7 @@ const Key = () => {
     };
 
     // Stats par heure (11h-23h)
-    const hoursRange = Array.from({ length: 13 }, (_, i) => 11 + i);
+    const hoursRange = Array.from({ length: 13 }, (_, i) => 11 + i); // length: 13 }, (_, i) => 11 + i)
     const hourly = hoursRange.map((h) => {
       const ordersInHour = data.filter(
         (o) => dayjs(o.date).isSame(today, "day") && dayjs(o.date).hour() === h

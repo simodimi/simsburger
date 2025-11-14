@@ -9,6 +9,7 @@ import Step from "@mui/material/Step";
 import StepLabel from "@mui/material/StepLabel";
 import Typography from "@mui/material/Typography";
 import axios from "../pagePrivate/Utils";
+import { toast } from "react-toastify";
 
 const Init = () => {
   const navigate = useNavigate();
@@ -240,7 +241,7 @@ const Init = () => {
                         <input
                           type="email"
                           placeholder="Entrez votre email"
-                          name="adminemail"
+                          name="mailuser"
                           value={dataform.mailuser}
                           onChange={handlechange}
                         />
@@ -265,7 +266,7 @@ const Init = () => {
                           <p>Entrer votre nouveau mot de passe</p>
                           <input
                             type="password"
-                            name="adminpassword"
+                            name="passworduser"
                             value={dataform.passworduser}
                             onChange={handlechange}
                           />
@@ -277,7 +278,7 @@ const Init = () => {
                           <p>Confirmer votre mot de passe</p>
                           <input
                             type="password"
-                            name="adminpasswordconfirm"
+                            name="passwordconfirmuser"
                             value={dataform.passwordconfirmuser}
                             onChange={handlechange}
                           />

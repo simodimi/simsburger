@@ -301,7 +301,7 @@ const New = () => {
   };
   const handleClicknext1 = async () => {
     setOpen1(true);
-    const orderData = {
+    /* const orderData = {
       id: orderId,
       //items: cart,
       date: new Date().toISOString(),
@@ -320,6 +320,32 @@ const New = () => {
         product_name: item.text, // Pour cohérence
         order_date: new Date().toISOString(),
       })),
+    };*/
+    const orderData = {
+      id: orderId,
+      date: new Date().toISOString(),
+      total: parseFloat(total.toFixed(2)),
+      items: cart.map((item) => {
+        const itemTotal = calculateItemTotal(item);
+        const basePrice = (item.prix || 0) * (item.quantity || 1);
+        const extraPrice = itemTotal - basePrice;
+
+        return {
+          product_id: item.id,
+          names: item.text,
+          quantity: parseInt(item.quantity),
+          price: parseFloat(item.prix.toFixed(2)),
+          extraPrice: parseFloat(extraPrice.toFixed(2)), // ← NOUVEAU CHAMP
+          type: "sur place",
+          isCustom: item.isCustom,
+          removedItems: item.removedItems,
+          customItems: item.customItems,
+          order_id: orderId,
+          total_revenue: parseFloat(itemTotal.toFixed(2)), // ← CORRIGÉ
+          product_name: item.text,
+          order_date: new Date().toISOString(),
+        };
+      }),
     };
     try {
       const response = await axios.post("http://localhost:5000/orderitem", {
@@ -360,7 +386,7 @@ const New = () => {
   };
   const handleClicknext2 = async () => {
     setOpen2(true);
-    const orderData = {
+    /*const orderData = {
       id: orderId,
       //items: cart,
       date: new Date().toISOString(),
@@ -379,6 +405,32 @@ const New = () => {
         product_name: item.text, // Pour cohérence
         order_date: new Date().toISOString(),
       })),
+    };*/
+    const orderData = {
+      id: orderId,
+      date: new Date().toISOString(),
+      total: parseFloat(total.toFixed(2)),
+      items: cart.map((item) => {
+        const itemTotal = calculateItemTotal(item);
+        const basePrice = (item.prix || 0) * (item.quantity || 1);
+        const extraPrice = itemTotal - basePrice;
+
+        return {
+          product_id: item.id,
+          names: item.text,
+          quantity: parseInt(item.quantity),
+          price: parseFloat(item.prix.toFixed(2)),
+          extraPrice: parseFloat(extraPrice.toFixed(2)), // ← NOUVEAU CHAMP
+          type: "emporter",
+          isCustom: item.isCustom,
+          removedItems: item.removedItems,
+          customItems: item.customItems,
+          order_id: orderId,
+          total_revenue: parseFloat(itemTotal.toFixed(2)), // ← CORRIGÉ
+          product_name: item.text,
+          order_date: new Date().toISOString(),
+        };
+      }),
     };
     try {
       const response = await axios.post("http://localhost:5000/orderitem", {
@@ -422,32 +474,39 @@ const New = () => {
     setOpen3(true);
     const orderData = {
       id: orderId,
-      //items: cart,
       date: new Date().toISOString(),
       livraison: {
-        adresse: `${formValues.numerovoie} ${formValues.nomrue}, ${formValues.ville}`,
+        adresse: `${formValues.numerovoie} ${formValues.nomrue}, ${formValues.ville},${formValues.complementinfo}`,
         telephone: formValues.phone,
       },
       total: parseFloat((total + deliveryFee).toFixed(2)),
-      items: cart.map((item) => ({
-        product_id: item.id,
-        names: item.text,
-        quantity: parseInt(item.quantity),
-        price: parseFloat(item.prix.toFixed(2)),
-        type: "livraison",
-        isCustom: item.isCustom,
-        removedItems: item.removedItems,
-        customItems: item.customItems,
-        order_id: orderId,
-        total_revenue: parseFloat((item.prix * item.quantity).toFixed(2)), // Calculé ici
-        product_name: item.text, // Pour cohérence
-        order_date: new Date().toISOString(),
-        //ajout
-        adresse: `${formValues.numerovoie} ${formValues.nomrue}, ${formValues.ville}`,
-        prixLivraison: deliveryFee,
-        telephone: formValues.phone,
-      })),
+      items: cart.map((item) => {
+        const itemTotal = calculateItemTotal(item);
+        const basePrice = (item.prix || 0) * (item.quantity || 1);
+        const extraPrice = itemTotal - basePrice;
+
+        return {
+          product_id: item.id,
+          names: item.text,
+          quantity: parseInt(item.quantity),
+          price: parseFloat(item.prix.toFixed(2)),
+          extraPrice: parseFloat(extraPrice.toFixed(2)), // ← NOUVEAU CHAMP
+          type: "livraison",
+          isCustom: item.isCustom,
+          removedItems: item.removedItems,
+          customItems: item.customItems,
+          order_id: orderId,
+          total_revenue: parseFloat((item.prix * item.quantity).toFixed(2)), // Calculé ici
+          product_name: item.text, // Pour cohérence
+          order_date: new Date().toISOString(),
+          //ajout
+          adresse: `${formValues.numerovoie} ${formValues.nomrue}, ${formValues.ville},${formValues.complementinfo}`,
+          prixLivraison: deliveryFee,
+          telephone: formValues.phone,
+        };
+      }),
     };
+
     try {
       const response = await axios.post("http://localhost:5000/orderitem", {
         items: orderData.items,
@@ -615,7 +674,7 @@ const New = () => {
     if (drive) {
       doc.text(`numéro de telephone : ${formValues.phone}`, 20, y + 30);
       doc.text(
-        `adresse de livraison : ${formValues.nomrue} ${formValues.numerovoie}, ${formValues.ville}`,
+        `adresse de livraison : ${formValues.nomrue} ${formValues.numerovoie}, ${formValues.ville}, ${formValues.complementinfo}`,
         20,
         y + 40
       );
@@ -711,7 +770,7 @@ const New = () => {
     return 8 + (distanceKm - 10) * 0.5;
   };
   const handleCheckAddress = () => {
-    const fullAddress = `${formValues.numerovoie} ${formValues.nomrue}, ${formValues.ville}`;
+    const fullAddress = `${formValues.numerovoie} ${formValues.nomrue}, ${formValues.ville},${formValues.complementinfo}`;
     handleManualAddress(fullAddress, setDeliveryFee, setPosition);
   };
   //livraison
@@ -780,7 +839,7 @@ const New = () => {
     // Nettoie la chaîne pour éviter espaces ou caractères spéciaux
     const currentHour = parseInt(heurefr);
     console.log(`Heure FR: ${currentHour}h`);
-    return currentHour < 0 || currentHour >= 25; // 11 23
+    return currentHour < 11 || currentHour >= 23; // 11 23
   };
   //mis à jour de l'heures
   const [timer, setTimer] = useState(
@@ -968,7 +1027,6 @@ const New = () => {
                       value={codeInput}
                       onChange={handlereduction}
                       maxLength={5}
-                      style={{ width: "90px" }}
                     />
                   </div>
                 </div>
@@ -1187,7 +1245,7 @@ const New = () => {
               onClick={() => {
                 handleDownloadReceipt();
                 handleClose1();
-                navigate("/carte");
+                // navigate("/carte");
               }}
             >
               Télécharger le reçu
@@ -1258,7 +1316,7 @@ const New = () => {
               onClick={() => {
                 handleDownloadReceipt();
                 handleClose2();
-                navigate("/carte");
+                //navigate("/carte");
               }}
             >
               Télécharger le reçu
@@ -1331,7 +1389,7 @@ const New = () => {
               onClick={() => {
                 handleDownloadReceipt();
                 handleClose3();
-                navigate("/carte");
+                //navigate("/carte");
               }}
             >
               Télécharger le reçu

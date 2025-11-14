@@ -10,21 +10,41 @@ const createOrderitem = async (req, res) => {
     if (!Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ error: "Aucun article fourni" });
     }
+
     const createOrders = await Promise.all(
       items.map((item) => {
-        const totalRevenue = item.price * item.quantity;
+        // Calculer le prix total avec suppléments
+        let baseTotal = item.price * item.quantity;
+        let extraPrice = 0;
+
+        if (item.isCustom && item.customItems?.length > 0) {
+          item.customItems.forEach((customItem) => {
+            const baseQty = customItem.baseQuantity || 0;
+            const currentQty = customItem.quantity || 0;
+
+            if (currentQty > baseQty) {
+              const supplement = currentQty - baseQty;
+              const supplementPrice = customItem.prix || customItem.price || 0;
+              extraPrice += supplementPrice;
+            }
+          });
+        }
+
+        const totalRevenue = baseTotal + extraPrice;
+
         return Orderitem.create({
-          product_id: item.product_id, // Gérer les deux cas
+          product_id: item.product_id,
           names: item.names,
           quantity: item.quantity,
           price: item.price,
+          extraPrice: extraPrice,
           type: item.type,
           isCustom: item.isCustom || false,
           removedItems: item.removedItems || [],
           customItems: item.customItems || [],
           order_id: item.order_id,
           total_revenue: totalRevenue,
-          product_name: item.names, // Même chose que names pour cohérence
+          product_name: item.names,
           order_date: new Date(),
           adresse: item.adresse,
           prixLivraison: item.prixLivraison,
@@ -32,6 +52,7 @@ const createOrderitem = async (req, res) => {
         });
       })
     );
+
     if (global.io) {
       global.io.to("orders_room").emit("new_orderitems", createOrders);
     }
