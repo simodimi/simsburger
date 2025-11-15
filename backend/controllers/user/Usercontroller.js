@@ -468,7 +468,6 @@ const getUserPoints = async (req, res) => {
   }
 };
 
-// CORRECTION dans le backend (updateUserPoints)
 const updateUserPoints = async (req, res) => {
   try {
     const { pointsGagnes, pointsDepenses } = req.body;
@@ -488,6 +487,9 @@ const updateUserPoints = async (req, res) => {
       {
         pointscumules: parseFloat(user.pointscumules) + pointsGagnesNum,
         pointsutilises: parseFloat(user.pointsutilises) + pointsDepensesNum,
+        pointsrestant: parseFloat(
+          updatedUser.pointscumules - updatedUser.pointsutilises || 0
+        ),
       },
       {
         where: { iduser: iduser },

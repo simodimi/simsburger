@@ -1044,7 +1044,7 @@ export const wrap = [
   },
 ];
 export const bpc = [
-  {
+  /*{
     id: 78,
     photo: bpcfish,
     text: "Big Fish",
@@ -1057,7 +1057,7 @@ export const bpc = [
     type: "poisson",
     taille: "petit",
     disabled: false,
-  },
+  },*/
   {
     id: 79,
     photo: bpchk,
@@ -2379,7 +2379,7 @@ export const MainListAdmin = [
     lien: "/admin/dashboard/gestioncommande",
   },
 ];
-export const MainListAdminpetit = [
+/*export const MainListAdminpetit = [
   {
     id: 200,
     photo: bpcfish,
@@ -2457,24 +2457,96 @@ export const MainListAdminpetit = [
     taille: "petit",
     disabled: false,
   },
+];*/
+export const MainListAdminpetit = [
+  {
+    id: 101, // Big Fish
+    photo: bigfish,
+    text: "Big Fish",
+    taille: "petit",
+    disabled: false,
+  },
+  {
+    id: 79, // burger chicken (BPC)
+    photo: bpchk,
+    text: "burger chicken",
+    taille: "petit",
+    disabled: false,
+  },
+  {
+    id: 80, // burger cheese (BPC)
+    photo: cheese,
+    text: "burger cheese",
+    taille: "petit",
+    disabled: false,
+  },
+  {
+    id: 81, // hamburger (BPC)
+    photo: hamb,
+    text: "hamburger",
+    taille: "petit",
+    disabled: false,
+  },
+  {
+    id: 82, // kid fish (BPC)
+    photo: kidfish,
+    text: "kid fish",
+    taille: "petit",
+    disabled: false,
+  },
+  {
+    id: 83, // double king (BPC)
+    photo: doubleking,
+    text: "double king",
+    taille: "petit",
+    disabled: false,
+  },
+  {
+    id: 84, // cheese bacon (BPC)
+    photo: cheesebacon,
+    text: "cheese bacon",
+    taille: "petit",
+    disabled: false,
+  },
+  {
+    id: 85, // double cheese bacon (BPC)
+    photo: dcb,
+    text: "double cheese bacon",
+    taille: "petit",
+    disabled: false,
+  },
+  {
+    id: 89, // Double Fish Béarnaise
+    photo: doublefish,
+    text: "Double Fish Béarnaise",
+    taille: "petit",
+    disabled: false,
+  },
+  {
+    id: 93, // Big King
+    photo: bigking,
+    text: "Big King",
+    taille: "petit",
+    disabled: false,
+  },
 ];
 export const MainListAdmingrand = [
   {
-    id: 220,
+    id: 86,
     photo: cheesy,
     text: "Cheesy Steakhouse",
     taille: "grand",
     disabled: false,
   },
   {
-    id: 221,
+    id: 87,
     photo: bearnaise1,
     text: "Steakhouse Chicken Béarnaise",
     taille: "grand",
     disabled: false,
   },
   {
-    id: 222,
+    id: 88,
     photo: poivreskh,
     text: "Steakhouse Poivre",
     taille: "grand",
@@ -2482,21 +2554,21 @@ export const MainListAdmingrand = [
   },
 
   {
-    id: 223,
+    id: 90,
     photo: mastercantal,
     text: "Master Poulet Cantal",
     taille: "grand",
     disabled: false,
   },
   {
-    id: 224,
+    id: 91,
     photo: masterbacon,
     text: "Master Cantal Bacon",
     taille: "grand",
     disabled: false,
   },
   {
-    id: 225,
+    id: 92,
     photo: veggie,
     text: "Veggie Chicken Louisiane",
     taille: "grand",
@@ -2504,49 +2576,49 @@ export const MainListAdmingrand = [
   },
 
   {
-    id: 226,
+    id: 94,
     photo: bigkingxxl,
     text: "Big King XXL",
     taille: "grand",
     disabled: false,
   },
   {
-    id: 227,
+    id: 95,
     photo: dstk,
     text: "Double Steakhouse",
     taille: "grand",
     disabled: false,
   },
   {
-    id: 228,
+    id: 96,
     photo: dwhopper,
     text: "Double Whopper",
     taille: "grand",
     disabled: false,
   },
   {
-    id: 229,
+    id: 97,
     photo: dcbXXL,
     text: "Double Cheese Bacon XXL",
     taille: "grand",
     disabled: false,
   },
   {
-    id: 230,
+    id: 98,
     photo: chklouisiane,
     text: "Chicken Louisiane Steakhouse",
     taille: "grand",
     disabled: false,
   },
   {
-    id: 231,
+    id: 99,
     photo: veggiestk,
     text: "Veggie Steakhouse",
     taille: "grand",
     disabled: false,
   },
   {
-    id: 232,
+    id: 100,
     photo: stk,
     text: "Steakhouse",
     taille: "grand",

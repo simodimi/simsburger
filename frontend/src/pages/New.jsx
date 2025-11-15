@@ -301,26 +301,6 @@ const New = () => {
   };
   const handleClicknext1 = async () => {
     setOpen1(true);
-    /* const orderData = {
-      id: orderId,
-      //items: cart,
-      date: new Date().toISOString(),
-      total: parseFloat(total.toFixed(2)),
-      items: cart.map((item) => ({
-        product_id: item.id,
-        names: item.text,
-        quantity: parseInt(item.quantity),
-        price: parseFloat(item.prix.toFixed(2)), // Arrondir le prix item.prix,
-        type: "sur place",
-        isCustom: item.isCustom,
-        removedItems: item.removedItems,
-        customItems: item.customItems,
-        order_id: orderId,
-        total_revenue: parseFloat((item.prix * item.quantity).toFixed(2)), // item.prix * item.quantity, // Calculé ici
-        product_name: item.text, // Pour cohérence
-        order_date: new Date().toISOString(),
-      })),
-    };*/
     const orderData = {
       id: orderId,
       date: new Date().toISOString(),
@@ -384,28 +364,77 @@ const New = () => {
       { withCredentials: true }
     );
   };
-  const handleClicknext2 = async () => {
-    setOpen2(true);
-    /*const orderData = {
+  /* const handleClicknext1 = async () => {
+    setOpen1(true);
+
+    const orderData = {
       id: orderId,
-      //items: cart,
       date: new Date().toISOString(),
       total: parseFloat(total.toFixed(2)),
-      items: cart.map((item) => ({
-        product_id: item.id,
-        names: item.text,
-        quantity: parseInt(item.quantity),
-        price: parseFloat(item.prix.toFixed(2)),
-        type: "emporter",
-        isCustom: item.isCustom,
-        removedItems: item.removedItems,
-        customItems: item.customItems,
-        order_id: orderId,
-        total_revenue: parseFloat((item.prix * item.quantity).toFixed(2)), // Calculé ici
-        product_name: item.text, // Pour cohérence
-        order_date: new Date().toISOString(),
-      })),
-    };*/
+      items: cart.map((item) => {
+        const itemTotal = calculateItemTotal(item);
+        const basePrice = (item.prix || 0) * (item.quantity || 1);
+        const extraPrice = itemTotal - basePrice;
+
+        return {
+          product_id: item.id,
+          names: item.text,
+          quantity: parseInt(item.quantity),
+          price: parseFloat(item.prix.toFixed(2)),
+          extraPrice: parseFloat(extraPrice.toFixed(2)),
+          type: "sur place",
+          isCustom: item.isCustom,
+          removedItems: item.removedItems,
+          customItems: item.customItems,
+          order_id: orderId,
+          total_revenue: parseFloat(itemTotal.toFixed(2)),
+          product_name: item.text,
+          order_date: new Date().toISOString(),
+        };
+      }),
+    };
+
+    try {
+      await axios.post("http://localhost:5000/orderitem", {
+        items: orderData.items,
+      });
+    } catch (error) {
+      console.error("Erreur sauvegarde items:", error);
+    }
+
+    let pointsrestants = 0;
+
+    if (isAuthenticated) {
+      try {
+        const pointsResponse = await axios.get(
+          "http://localhost:5000/user/points",
+          { withCredentials: true }
+        );
+
+        const pointscumules = Number(pointsResponse.data.pointscumules) || 0;
+        const pointsutilises = Number(pointsResponse.data.pointsutilises) || 0;
+
+        pointsrestants = pointscumules - pointsutilises;
+      } catch (error) {
+        console.error("Erreur récupération points commande:", error);
+      }
+    }
+
+    console.log("Points gagnés:", soustotal / 5);
+    console.log("Points dépensés:", pointsrestants);
+
+    await axios.post(
+      "http://localhost:5000/user/updatePoints",
+      {
+        pointsGagnes: soustotal / 5,
+        pointsDepenses: pointsrestants,
+      },
+      { withCredentials: true }
+    );
+  };*/
+
+  const handleClicknext2 = async () => {
+    setOpen2(true);
     const orderData = {
       id: orderId,
       date: new Date().toISOString(),
@@ -693,8 +722,8 @@ const New = () => {
 
     // Fermeture et reset
     setOpen1(false);
-    setCart([]);
-    setcount(0);
+    //setCart([]);
+    //setcount(0);
   };
   const [formValues, setFormValues] = useState({
     name: "",

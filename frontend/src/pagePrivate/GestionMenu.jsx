@@ -96,6 +96,7 @@ const GestionMenu = () => {
 
       if (response.status === 200) {
         toast.success(`${text} ${newStatus ? "activé" : "désactivé"}`);
+        await loadProductStatus(); // Recharger les statuts pour s'assurer de la synchronisation
       }
     } catch (error) {
       console.error("Erreur de mise à jour de statut:", error);
@@ -112,6 +113,10 @@ const GestionMenu = () => {
   };
 
   const handleEnter = (e) => {
+    setFilteredListgrand(MainListAdmingrand);
+    setFilteredListpetit(MainListAdminpetit);
+    setboissonslist(boissons);
+    setsnackslist(dimi);
     if (e.key === "Enter") {
       e.preventDefault();
       setFilteredListpetit(
