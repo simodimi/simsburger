@@ -36,7 +36,7 @@ const Statistique = () => {
     const startOfMonth = today.startOf("month");
 
     // BURGER LE PLUS CONSOMMÉ PAR HEURE
-    const hoursRange = Array.from({ length: 13 }, (_, i) => 11 + i);
+    const hoursRange = Array.from({ length: 23 }, (_, i) => 0 + i);
     const hourly = hoursRange.map((h) => {
       const ordersInHour = data.filter(
         (o) => dayjs(o.date).isSame(today, "day") && dayjs(o.date).hour() === h

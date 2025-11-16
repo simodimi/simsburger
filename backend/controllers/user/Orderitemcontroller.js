@@ -53,9 +53,12 @@ const createOrderitem = async (req, res) => {
       })
     );
 
-    if (global.io) {
+    /* if (global.io) {
       global.io.to("orders_room").emit("new_orderitems", createOrders);
-    }
+    }*/
+    createOrders.forEach((order) => {
+      global.io.to("orders_room").emit("new_orderitems", order);
+    });
     res.status(200).json(createOrders);
   } catch (error) {
     res.status(500).json({ error: error.message });

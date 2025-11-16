@@ -515,9 +515,10 @@ const Login = () => {
                               <th>Prix</th>
                               <th>N° commande</th>
                               <th>Points fidélité</th>
-                              {usercommande.some(
+                              {/*usercommande.some(
                                 (cmd) => cmd.type === "livraison"
-                              ) && <th>Adresse de livraison</th>}
+                              ) && <th>Adresse de livraison</th>*/}
+                              <th>Adresse de livraison</th>
                               <th>Supprimer</th>
                             </tr>
                           </thead>
@@ -646,12 +647,16 @@ const Login = () => {
                                   })()}{" "}
                                   bitSim's
                                 </td>
-                                {commande.type === "livraison" && (
+                                {/*commande.type === "livraison" && (
                                   <td>
                                     {commande.items[0]?.adresse ||
                                       "Non spécifiée"}
                                   </td>
-                                )}
+                                )*/}
+                                <td>
+                                  {commande.items[0]?.adresse ||
+                                    "Non spécifiée"}
+                                </td>
                                 <td>
                                   <Button
                                     className="rejectbtn"

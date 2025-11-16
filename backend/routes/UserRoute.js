@@ -45,12 +45,6 @@ router.post(
   Usercontroller.verifyToken,
   Usercontroller.updatevaluecode
 );
-/*router.get(
-  "/getupdatecode",
-  Usercontroller.verifyToken,
-  Usercontroller.getValuecode
-);*/
-//
 
 //  Mettre à jour les points après une commande
 router.post(

@@ -467,7 +467,6 @@ const getUserPoints = async (req, res) => {
       .json({ message: "Erreur lors de la récupération des points" });
   }
 };
-
 const updateUserPoints = async (req, res) => {
   try {
     const { pointsGagnes, pointsDepenses } = req.body;
@@ -478,42 +477,45 @@ const updateUserPoints = async (req, res) => {
       return res.status(404).json({ message: "Utilisateur introuvable" });
     }
 
-    // S'assurer que les valeurs sont des nombres
-    const pointsGagnesNum = parseFloat(pointsGagnes || 0);
-    const pointsDepensesNum = parseFloat(pointsDepenses || 0);
+    // Sécuriser les valeurs
+    const gained = Number(pointsGagnes) || 0;
+    const used = Number(pointsDepenses) || 0;
 
-    // Mise à jour atomique pour éviter les conflits
+    // Mise à jour des totaux
+    const newCumules = Number(user.pointscumules) + gained;
+    const newUtilises = Number(user.pointsutilises) + used; // 🔥 FIX IMPORTANT
+
+    // Points restants (avec sécurité)
+    const newRestants = Math.max(0, newCumules - newUtilises);
+
+    // Mise à jour DB
     await User.update(
       {
-        pointscumules: parseFloat(user.pointscumules) + pointsGagnesNum,
-        pointsutilises: parseFloat(user.pointsutilises) + pointsDepensesNum,
-        pointsrestant: parseFloat(
-          updatedUser.pointscumules - updatedUser.pointsutilises || 0
-        ),
+        pointscumules: newCumules,
+        pointsutilises: newUtilises,
+        // pointsrestants: newRestants, // si tu veux le stocker
       },
-      {
-        where: { iduser: iduser },
-      }
+      { where: { iduser } }
     );
 
-    // Récupérer l'utilisateur mis à jour
+    // Recharger user après update
     const updatedUser = await User.findByPk(iduser);
 
+    // Socket si nécessaire
     if (global.io) {
       global.io.to("orders_room").emit("points_updated", {
         iduser: updatedUser.iduser,
-        pointscumules: parseFloat(updatedUser.pointscumules || 0),
-        pointsutilises: parseFloat(updatedUser.pointsutilises || 0),
-        pointsrestant: parseFloat(
-          updatedUser.pointscumules - updatedUser.pointsutilises || 0
-        ),
+        pointscumules: newCumules,
+        pointsutilises: newUtilises,
+        pointsrestants: newRestants,
       });
     }
 
-    res.status(200).json({
-      pointscumules: updatedUser.pointscumules,
-      pointsutilises: updatedUser.pointsutilises,
-      pointsrestant: updatedUser.pointscumules - updatedUser.pointsutilises,
+    return res.status(200).json({
+      message: "Points mis à jour avec succès",
+      pointscumules: newCumules,
+      pointsutilises: newUtilises,
+      pointsrestants: newRestants,
     });
   } catch (error) {
     console.error("Erreur updateUserPoints:", error);
@@ -522,24 +524,7 @@ const updateUserPoints = async (req, res) => {
       .json({ message: "Erreur lors de la mise à jour des points" });
   }
 };
-// Récupérer le code de fidélité de l'utilisateur
-/*const getValuecode = async (req, res) => {
-  try {
-    const iduser = req.user.iduser;
-    const user = await User.findByPk(iduser, {
-      attributes: ["valuecode"],
-    });
 
-    if (!user) {
-      return res.status(404).json({ message: "Utilisateur introuvable" });
-    }
-
-    return res.status(200).json({ valuecode: user.valuecode });
-  } catch (error) {
-    console.error("Erreur getValuecode:", error);
-    res.status(500).json({ message: "Une erreur est survenue" });
-  }
-};*/
 const verifyUserCode = async (req, res) => {
   try {
     const { code } = req.query;
