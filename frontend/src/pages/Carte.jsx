@@ -44,6 +44,11 @@ const Carte = ({ setselectOpt, selectOpt }) => {
             >
               <img src={p.photo} alt={p.descript} />
               <p>{p.text}</p>
+
+              <div className="TopbarIcon">
+                <img src={p.photo} alt={p.descript} />
+                <p>{p.text}</p>
+              </div>
             </div>
           </Link>
         ))}

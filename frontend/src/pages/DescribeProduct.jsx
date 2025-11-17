@@ -46,7 +46,7 @@ const DescribeProduct = () => {
     personnalisation: true,
   });
 
-  // 🔥 Gestion des statuts (backend + Socket.io)
+  // Gestion des statuts (backend + Socket.io)
   const [boissonsFiltered, setBoissonsFiltered] = useState([]);
   const [snacksFiltered, setSnacksFiltered] = useState([]);
   const [burgersFiltered, setBurgersFiltered] = useState([]);
@@ -231,12 +231,12 @@ const DescribeProduct = () => {
     choix3: false,
   });
 
-  // 🔥 CORRECTION : Gestion améliorée des images
+  //Gestion améliorée des images
   const [image1, setImage1] = useState("");
   const [image2, setImage2] = useState(burger || "");
   const [image3, setImage3] = useState("");
 
-  // ✅ Met à jour l'image automatiquement quand le snack sélectionné change
+  // Met à jour l'image automatiquement quand le snack sélectionné change
   useEffect(() => {
     if (selectionSnack && !selectionSnack.disabled) {
       setImage1(selectionSnack.photo);
@@ -247,7 +247,7 @@ const DescribeProduct = () => {
     }
   }, [selectionSnack, snacksSelection]);
 
-  // ✅ Met à jour l'image automatiquement quand la boisson sélectionnée change
+  // Met à jour l'image automatiquement quand la boisson sélectionnée change
   useEffect(() => {
     if (checkboisson && !checkboisson.disabled) {
       setImage3(checkboisson.photo);

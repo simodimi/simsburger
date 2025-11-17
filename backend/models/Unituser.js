@@ -66,7 +66,7 @@ Rapport.belongsTo(Admin, {
   onDelete: "CASCADE", // Doit correspondre
 });
 
-// CORRECTION : Un administrateur peut avoir plusieurs statistiques (One-to-Many)
+// Un administrateur peut avoir plusieurs statistiques (One-to-Many)
 Admin.hasMany(Statistique, {
   foreignKey: "admin_id",
   as: "statistiques",

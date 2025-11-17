@@ -26,7 +26,7 @@ const LoginAdmin = () => {
 
   const handlebackhome = async () => {
     try {
-      // Appel correct : POST + withCredentials
+      // POST + withCredentials
       await axios.post(
         "http://localhost:5000/admin/logout",
         {},

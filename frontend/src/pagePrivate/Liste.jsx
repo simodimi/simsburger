@@ -26,7 +26,7 @@ const Liste = () => {
     });
 
     newSocket.on("connect_error", (error) => {
-      console.error("❌ Erreur connexion Socket.io:", error);
+      console.error("Erreur connexion Socket.io:", error);
     });
 
     return () => {
@@ -39,18 +39,18 @@ const Liste = () => {
     const update = async () => {
       try {
         const response = await axios.get("http://localhost:5000/orderitem");
-        console.log("📥 Données reçues:", response.data);
+        console.log("Données reçues:", response.data);
 
-        // 🔥 CORRECTION : Vérification que response.data existe
+        //  Vérification que response.data existe
         if (!response.data || !Array.isArray(response.data)) {
-          console.warn("⚠️ Aucune donnée reçue ou format invalide");
+          console.warn("Aucune donnée reçue ou format invalide");
           setFilteredData([]);
           setOrders([]);
           return;
         }
 
         const commandesRegroupees = response.data.reduce((acc, item) => {
-          // 🔥 CORRECTION : Vérification que item existe
+          // Vérification que item existe
           if (!item) return acc;
 
           const commandeId = item.order_id;
@@ -64,7 +64,7 @@ const Liste = () => {
             };
           }
 
-          // 🔥 CORRECTION : Vérifier que acc[commandeId] existe avant de push
+          // Vérifier que acc[commandeId] existe avant de push
           if (acc[commandeId] && Array.isArray(acc[commandeId].items)) {
             acc[commandeId].items.push(item);
           }
@@ -73,12 +73,12 @@ const Liste = () => {
         }, {});
 
         const result = Object.values(commandesRegroupees);
-        console.log("🔄 Commandes regroupées:", result);
+        console.log("Commandes regroupées:", result);
 
         setFilteredData(result);
         setOrders(result);
       } catch (error) {
-        console.error("❌ Erreur:", error);
+        console.error("Erreur:", error);
         setFilteredData([]);
         setOrders([]);
       }
@@ -106,10 +106,10 @@ const Liste = () => {
     }
   };
 
-  // 🔥 CORRECTION : Vérifications ajoutées dans handleDownloadReceipt
+  // vérifications ajoutées dans handleDownloadReceipt
   const handleDownloadReceipt = (commande) => {
     if (!commande || !commande.items || !Array.isArray(commande.items)) {
-      console.error("❌ Commande invalide pour le PDF:", commande);
+      console.error("Commande invalide pour le PDF:", commande);
       return;
     }
 
@@ -141,7 +141,7 @@ const Liste = () => {
     let total = 0;
 
     commande.items.forEach((item) => {
-      // 🔥 CORRECTION : Vérifier que item existe
+      //Vérifier que item existe
       if (!item) return;
 
       const prixItem = ((item.price || 0) * (item.quantity || 0)).toFixed(2);
@@ -241,7 +241,7 @@ const Liste = () => {
         </p>
       ) : (
         filteredData.map((commande) => {
-          // 🔥 CORRECTION PRINCIPALE : Vérifier que commande et commande.items existent
+          //Vérifier que commande et commande.items existent
           if (!commande || !commande.items || !Array.isArray(commande.items)) {
             console.warn(" Commande invalide:", commande);
             return null; // Ne pas rendre cette commande
@@ -271,7 +271,7 @@ const Liste = () => {
                 </div>
               </div>
               <div className="table-container">
-                <table>
+                <table className="tableadmin">
                   <thead>
                     <tr style={{ backgroundColor: "#e31937" }}>
                       <th>Date</th>
@@ -288,7 +288,6 @@ const Liste = () => {
                   </thead>
                   <tbody className="tbodyadmin">
                     {commande.items.map((item, iIndex) => {
-                      // 🔥 CORRECTION : Vérifier que item existe
                       if (!item) return null;
 
                       return (

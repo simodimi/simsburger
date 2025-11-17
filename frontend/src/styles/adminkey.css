@@ -114,3 +114,13 @@
   font-weight: bold;
   font-size: 28px;
 }
+@media screen and (max-width: 1800px) {
+  .tableadmins {
+    overflow-x: auto !important;
+    scrollbar-width: thin !important;
+    width: 100% !important;
+    min-width: 1200px !important;
+    height: 100% !important;
+    display: block;
+  }
+}

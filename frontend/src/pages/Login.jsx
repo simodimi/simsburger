@@ -13,6 +13,7 @@ import { toast } from "react-toastify";
 import { useAuth } from "./AuthContextUser";
 import axios from "axios";
 import { io } from "socket.io-client";
+import corbeille from "../assets/logo/corbeille.png";
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -44,7 +45,7 @@ const Login = () => {
       const newOrders = Array.isArray(data) ? data : [data];
       setUsercommande((prev) => [...newOrders, ...prev]);
 
-      // 🔁 Met à jour les points en temps réel
+      // Met à jour les points en temps réel
       if (isAuthenticated) {
         try {
           const res = await axios.get("http://localhost:5000/user/points");
@@ -61,7 +62,7 @@ const Login = () => {
     });
 
     newSocket.on("connect_error", (error) => {
-      console.error("❌ Erreur connexion Socket.io:", error);
+      console.error("Erreur connexion Socket.io:", error);
     });
 
     return () => {
@@ -116,32 +117,6 @@ const Login = () => {
     setIndexToDelete(null);
   };
 
-  /* const handleConfirmDelete = async () => {
-    if (indexToDelete !== null) {
-      const commandeASupprimer = usercommande[indexToDelete];
-      if (commandeASupprimer.pointsUtilises) {
-        setPointsUtilises((prev) =>
-          Math.max(0, prev - commandeASupprimer.pointsUtilises)
-        );
-      }
-      if (commandeASupprimer.pointsGagnes) {
-        setPointsCumules((prev) =>
-          Math.max(0, prev - commandeASupprimer.pointsGagnes)
-        );
-      }
-      try {
-        // Vous devez avoir l'ID de la commande pour la suppression
-        // const id = commandeASupprimer.id;
-        await axios.delete(`http://localhost:5000/orderitem/${id}`);
-        setUsercommande((prev) => prev.filter((_, i) => i !== indexToDelete));
-        toast.success("Commande supprimée avec succès");
-      } catch (error) {
-        console.error("Erreur lors de la suppression de la commande", error);
-        toast.error("Erreur lors de la suppression");
-      }
-    }
-    handleClose();
-  };*/
   const handleConfirmDelete = async () => {
     if (indexToDelete === null) return;
     const commandeASupprimer = usercommande[indexToDelete];
@@ -167,10 +142,10 @@ const Login = () => {
 
         toast.success(res.data.message || "Commande supprimée avec succès ✅");
       } else {
-        console.error("❌ Échec de la suppression :", res.data);
+        console.error("Échec de la suppression :", res.data);
       }
     } catch (error) {
-      console.error("❌ Erreur lors de la suppression :", error);
+      console.error("Erreur lors de la suppression :", error);
     }
 
     handleClose();
@@ -326,8 +301,8 @@ const Login = () => {
         setPointsUtilises(utilises);
         setPointsDisponibles(restant);
       } catch (err) {
-        console.error("❌ Erreur récupération points:", err);
-        console.error("📋 Détails de l'erreur:", {
+        console.error(" Erreur récupération points:", err);
+        console.error("Détails de l'erreur:", {
           message: err.message,
           status: err.response?.status,
           data: err.response?.data,
@@ -663,6 +638,12 @@ const Login = () => {
                                     onClick={() => handleClickdelete(cIndex)}
                                   >
                                     Supprimer
+                                  </Button>
+                                  <Button
+                                    className="rejectbtndelete"
+                                    onClick={() => handleClickdelete(cIndex)}
+                                  >
+                                    <img src={corbeille} alt="" />
                                   </Button>
                                 </td>
                               </tr>

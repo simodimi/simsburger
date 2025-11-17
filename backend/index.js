@@ -56,28 +56,6 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// Gestion des connexions Socket.io
-/*io.on("connection", (socket) => {
-  console.log("🔌 Client connecté:", socket.id);
-
-  socket.on("disconnect", () => {
-    console.log("❌ Client déconnecté:", socket.id);
-  });
-  // gestion activaction/desactivation produits
-  socket.on("join_products", () => {
-    socket.join("products_room");
-  });
-
-  socket.on("leave_products", () => {
-    socket.leave("products_room");
-  });
-  // Messages utilisateurs
-  socket.on("join_messages_room", () => socket.join("messages_room"));
-  socket.on("leave_messages_room", () => socket.leave("messages_room"));
-  //gestion des commandes
-  socket.on("join_orders_room", () => socket.join("orders_room"));
-  socket.on("leave_orders_room", () => socket.leave("orders_room"));
-});*/
 io.on("connection", (socket) => {
   // Déconnexion du client
   socket.on("disconnect", () => {

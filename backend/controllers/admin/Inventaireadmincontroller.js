@@ -35,7 +35,7 @@ const createInventaire = async (req, res) => {
       }
     }
 
-    // CORRECTION: Utiliser l'admin de verifyToken
+    // Utiliser l'admin de verifyToken
     const adminId = req.admin.idadmin;
 
     // Ajouter les infos d'admin à chaque ligne
@@ -50,7 +50,7 @@ const createInventaire = async (req, res) => {
       dateEnregistrement: new Date(),
     }));
 
-    // ✅ CORRECTION: Insertion en masse (supprimer le code dupliqué)
+    // Insertion en masse (supprimer le code dupliqué)
     const newInventaires = await Inventaireadmin.bulkCreate(
       inventairesEnregistres
     );
@@ -60,7 +60,7 @@ const createInventaire = async (req, res) => {
       (p) => Number(p.numstock) <= critiqueseuil
     );
 
-    // ✅ CORRECTION: Envoi d'email pour tous les inventaires
+    // Envoi d'email pour tous les inventaires
     try {
       await mailjet.post("send", { version: "v3.1" }).request({
         Messages: [
@@ -81,7 +81,7 @@ const createInventaire = async (req, res) => {
       console.error("Erreur envoi mail notification :", err.message);
     }
 
-    // ✅ CORRECTION: Email pour produits critiques
+    // Email pour produits critiques
     if (critiques.length > 0) {
       const produitsCritiquesHTML = critiques
         .map(

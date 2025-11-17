@@ -36,7 +36,7 @@ const Dessert = () => {
 
     // Gestion des erreurs
     newSocket.on("connect_error", (error) => {
-      console.error("❌ Erreur connexion Socket.io:", error);
+      console.error(" Erreur connexion Socket.io:", error);
     });
 
     return () => {
@@ -95,7 +95,7 @@ const Dessert = () => {
           id: p.id,
           text: p.text,
           photo: p.photo,
-          disabled: false, // ← TOUT ACTIVÉ en fallback
+          disabled: false, //  TOUT ACTIVÉ en fallback
           prix: p.prix,
           description: p.description,
         }));

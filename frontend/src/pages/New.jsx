@@ -15,6 +15,7 @@ import sleep from "../assets/icone/sleep.gif";
 import axios from "../pagePrivate/Utils";
 import { toast } from "react-toastify";
 import { useAuth } from "../pages/AuthContextUser";
+import corbeille from "../assets/logo/corbeille.png";
 import { use } from "react";
 
 const New = () => {
@@ -96,7 +97,7 @@ const New = () => {
   };
   const GEOAPIFY_KEY = "4e9eabed4c1b4a44af8cba6c9d6603e8";
 
-  // 🗺️ Géocodage d’adresse (texte → coordonnées)
+  // Géocodage d’adresse (texte coordonnées)
   async function geocodeAddress(address) {
     const url = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(
       address
@@ -142,7 +143,7 @@ const New = () => {
 
       return menuTotal;
     }
-    // CORRECTION : Utiliser le prix original + extraPrice si disponible
+    // le prix original + extraPrice si disponible
     let total = (item.prix || 0) * (item.quantity || 1);
 
     // Si extraPrice est déjà calculé, l'utiliser directement
@@ -261,7 +262,7 @@ const New = () => {
 
         // Calculer le nouveau total
         const nouveauTotal = Math.max(0, soustotal - pointsrestants);
-        console.log("💰 Points à réduire:", pointsrestants);
+        console.log("Points à réduire:", pointsrestants);
         settotal(nouveauTotal);
       } else {
         seterror(true);
@@ -271,11 +272,11 @@ const New = () => {
         toast.error("Code de réduction invalide");
       }
     } catch (error) {
-      console.error("❌ Erreur vérification code:", error);
+      console.error("Erreur vérification code:", error);
       setCodeValide(false);
 
       if (error.response) {
-        console.log("📋 Détails erreur:", {
+        console.log("Détails erreur:", {
           status: error.response.status,
           data: error.response.data,
         });
@@ -400,74 +401,6 @@ const New = () => {
     );
     console.log("points gagnés", soustotal / 5);
   };
-  /* const handleClicknext1 = async () => {
-    setOpen1(true);
-
-    const orderData = {
-      id: orderId,
-      date: new Date().toISOString(),
-      total: parseFloat(total.toFixed(2)),
-      items: cart.map((item) => {
-        const itemTotal = calculateItemTotal(item);
-        const basePrice = (item.prix || 0) * (item.quantity || 1);
-        const extraPrice = itemTotal - basePrice;
-
-        return {
-          product_id: item.id,
-          names: item.text,
-          quantity: parseInt(item.quantity),
-          price: parseFloat(item.prix.toFixed(2)),
-          extraPrice: parseFloat(extraPrice.toFixed(2)),
-          type: "sur place",
-          isCustom: item.isCustom,
-          removedItems: item.removedItems,
-          customItems: item.customItems,
-          order_id: orderId,
-          total_revenue: parseFloat(itemTotal.toFixed(2)),
-          product_name: item.text,
-          order_date: new Date().toISOString(),
-        };
-      }),
-    };
-
-    try {
-      await axios.post("http://localhost:5000/orderitem", {
-        items: orderData.items,
-      });
-    } catch (error) {
-      console.error("Erreur sauvegarde items:", error);
-    }
-
-    let pointsrestants = 0;
-
-    if (isAuthenticated) {
-      try {
-        const pointsResponse = await axios.get(
-          "http://localhost:5000/user/points",
-          { withCredentials: true }
-        );
-
-        const pointscumules = Number(pointsResponse.data.pointscumules) || 0;
-        const pointsutilises = Number(pointsResponse.data.pointsutilises) || 0;
-
-        pointsrestants = pointscumules - pointsutilises;
-      } catch (error) {
-        console.error("Erreur récupération points commande:", error);
-      }
-    }
-
-    console.log("Points gagnés:", soustotal / 5);
-    console.log("Points dépensés:", pointsrestants);
-
-    await axios.post(
-      "http://localhost:5000/user/updatePoints",
-      {
-        pointsGagnes: soustotal / 5,
-        pointsDepenses: pointsrestants,
-      },
-      { withCredentials: true }
-    );
-  };*/
 
   const handleClicknext2 = async () => {
     setOpen2(true);
@@ -509,31 +442,6 @@ const New = () => {
     } catch (error) {
       console.error("une erreur est survenue", error);
     }
-
-    /* let pointsrestants = 0;
-    if (isAuthenticated) {
-      try {
-        const pointsResponse = await axios.get(
-          `http://localhost:5000/user/points`,
-          { withCredentials: true }
-        );
-        const pointscumules =
-          parseFloat(pointsResponse.data.pointscumules) || 0;
-        const pointsutilises =
-          parseFloat(pointsResponse.data.pointsutilises) || 0;
-        pointsrestants = pointscumules - pointsutilises;
-      } catch (error) {
-        console.error("Erreur récupération points commande:", error);
-      }
-    }
-    await axios.post(
-      "http://localhost:5000/user/updatePoints",
-      {
-        pointsGagnes: soustotal / 5, // exemple : 1 point gagné par 5€ dépensés
-        pointsDepenses: codeValide ? pointsrestants : 0, // points utilisés pour réduction
-      },
-      { withCredentials: true }
-    );*/
     let pointsrestants = 0;
     let pointsUtilisesReels = 0;
     if (isAuthenticated) {
@@ -611,30 +519,6 @@ const New = () => {
     } catch (error) {
       console.error("une erreur est survenue", error);
     }
-    /* let pointsrestants = 0;
-    if (isAuthenticated) {
-      try {
-        const pointsResponse = await axios.get(
-          `http://localhost:5000/user/points`,
-          { withCredentials: true }
-        );
-        const pointscumules =
-          parseFloat(pointsResponse.data.pointscumules) || 0;
-        const pointsutilises =
-          parseFloat(pointsResponse.data.pointsutilises) || 0;
-        pointsrestants = pointscumules - pointsutilises;
-      } catch (error) {
-        console.error("Erreur récupération points commande:", error);
-      }
-    }
-    await axios.post(
-      "http://localhost:5000/user/updatePoints",
-      {
-        pointsGagnes: soustotal / 5, // exemple : 1 point gagné par 5€ dépensés
-        pointsDepenses: codeValide ? pointsrestants : 0, // points utilisés pour réduction
-      },
-      { withCredentials: true }
-    );*/
     let pointsrestants = 0;
     let pointsUtilisesReels = 0;
     if (isAuthenticated) {
@@ -1106,6 +990,12 @@ const New = () => {
                           onClick={() => removeFromCart(item.id)}
                         >
                           Supprimer
+                        </Button>
+                        <Button
+                          className="rejectbtndelete"
+                          onClick={() => handleClickdelete(cIndex)}
+                        >
+                          <img src={corbeille} alt="" />
                         </Button>
                       </td>
                     </tr>

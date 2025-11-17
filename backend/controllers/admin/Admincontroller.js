@@ -109,49 +109,7 @@ const createAdmin = async (req, res) => {
     return res.status(500).json({ message: "une erreur est survenue" });
   }
 };
-/*const loginAdmin = async (req, res) => {
-  try {
-    const { adminemail, adminpassword } = req.body;
-    if (!adminemail || !adminpassword) {
-      return res
-        .status(400)
-        .json({ message: "tous les champs sont obligatoires" });
-    }
 
-    const user = await Admin.findOne({ where: { adminemail } });
-    if (!user) {
-      return res.status(404).json({ message: "utilisateur introuvable" });
-    }
-
-    if (!user.isactive) {
-      return res.status(403).json({
-        message:
-          "Votre compte n'est pas encore validé par le super administrateur.",
-      });
-    }
-
-    const passwordmatch = await bcrypt.compare(
-      adminpassword,
-      user.adminpassword
-    );
-    if (!passwordmatch) {
-      return res.status(401).json({ message: "mot de passe incorrect" });
-    }
-    //générer un token jwt
-    const token = generateToken(user);
-
-    return res.status(200).json({
-      idadmin: user.idadmin,
-      adminemail: user.adminemail,
-      adminname: user.adminname,
-      role: user.role,
-      token: token,
-    });
-  } catch (error) {
-    console.error("erreur lors de la connexion", error);
-    return res.status(500).json({ message: "une erreur est survenue" });
-  }
-};*/
 const loginAdmin = async (req, res) => {
   try {
     const { adminemail, adminpassword } = req.body;
@@ -206,35 +164,6 @@ const loginAdmin = async (req, res) => {
     return res.status(500).json({ message: "une erreur est survenue" });
   }
 };
-// Middleware de vérification du token
-/*const verifyToken = async (req, res, next) => {
-  try {
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ message: "Token manquant" });
-    }
-
-    const token = authHeader.split(" ")[1];
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    // Vérifier que l'admin existe toujours et est actif
-    const admin = await Admin.findByPk(decoded.idadmin);
-    if (!admin || !admin.isactive) {
-      return res.status(401).json({ message: "Admin non valide" });
-    }
-
-    req.admin = decoded;
-    next();
-  } catch (error) {
-    if (error.name === "TokenExpiredError") {
-      return res.status(401).json({ message: "Token expiré" });
-    }
-    return res.status(401).json({ message: "Token invalide" });
-  }
-};*/
-// Validation via token (clic dans l'email)
 const validateAdminByToken = async (req, res) => {
   try {
     const { token } = req.params;
@@ -357,39 +286,7 @@ const updateAdmin = async (req, res) => {
     res.status(500).json({ message: "une erreur est survenue" });
   }
 };
-// Fonction pour vérifier la validité du token (route dédiée)
-/*const checkTokenValidity = async (req, res) => {
-  try {
-    // Si on arrive ici, le middleware verifyToken a déjà validé le token
-    // Récupérer les données fraîches de l'admin
-    const admin = await Admin.findByPk(req.admin.idadmin, {
-      attributes: { exclude: ["adminpassword"] },
-    });
 
-    if (!admin || !admin.isactive) {
-      return res.status(401).json({
-        valid: false,
-        message: "Admin non valide ou compte désactivé",
-      });
-    }
-
-    // Token valide
-    return res.status(200).json({
-      valid: true,
-      admin: {
-        idadmin: admin.idadmin,
-        adminemail: admin.adminemail,
-        adminname: admin.adminname,
-        role: admin.role,
-      },
-    });
-  } catch (error) {
-    return res.status(401).json({
-      valid: false,
-      message: "Erreur de vérification",
-    });
-  }
-};*/
 // --- checkTokenValidity : renvoie les données admin fraîches ---
 const checkTokenValidity = async (req, res) => {
   try {
@@ -501,7 +398,7 @@ const verifyCode = async (req, res) => {
       return res.status(400).json({ message: "Code invalide" });
     }
 
-    // Code correct → on le supprime pour éviter la réutilisation
+    // on le supprime pour éviter la réutilisation
     verificationCodes.delete(adminemail);
 
     return res.status(200).json({ message: "Code vérifié avec succès" });

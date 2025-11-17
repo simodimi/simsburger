@@ -49,7 +49,7 @@ const Key = () => {
 
     // Gestion des erreurs
     newSocket.on("connect_error", (error) => {
-      console.error("❌ Erreur connexion Socket.io:", error);
+      console.error(" Erreur connexion Socket.io:", error);
     });
 
     return () => {
@@ -97,7 +97,7 @@ const Key = () => {
 
       return {
         hour: `${h}h`,
-        revenue: parseFloat(revenue.toFixed(2)), // 🔥 FORMATER À 2 DÉCIMALES
+        revenue: parseFloat(revenue.toFixed(2)),
         orders: ordersInHour.length,
       };
     });
@@ -115,7 +115,7 @@ const Key = () => {
 
       return {
         day: d,
-        revenue: parseFloat(revenue.toFixed(2)), // 🔥 FORMATER À 2 DÉCIMALES
+        revenue: parseFloat(revenue.toFixed(2)), //
         orders: ordersInDay.length,
       };
     });
@@ -134,7 +134,7 @@ const Key = () => {
 
       return {
         day: dayNum,
-        revenue: parseFloat(revenue.toFixed(2)), // 🔥 FORMATER À 2 DÉCIMALES
+        revenue: parseFloat(revenue.toFixed(2)), //
         orders: ordersInDay.length,
       };
     });
@@ -153,7 +153,7 @@ const Key = () => {
       0
     );
 
-    console.log("💰 Revenus calculés:", {
+    console.log(" Revenus calculés:", {
       aujourdhui: parseFloat(todayRevenue.toFixed(2)),
       semaine: parseFloat(weekRevenue.toFixed(2)),
       mois: parseFloat(monthRevenue.toFixed(2)),

@@ -118,7 +118,7 @@ const Personnalisation = ({
         (val) => typeof val === "string" && val === it.text
       );
 
-      // DÉTERMINER LA QUANTITÉ DE BASE CORRECTE
+      // DÉTERMINER LA QUANTITÉ DE BASE
       let baseQty = 0;
       if (isComposition) {
         // Si l'ingrédient fait partie de la composition, base = 1
@@ -207,13 +207,13 @@ const Personnalisation = ({
       };
     });
 
-    // ✅ empêche la boucle infinie
+    // empêche la boucle infinie
     const hasChanged =
       JSON.stringify(currentItems) !== JSON.stringify(updatedItems);
     if (hasChanged) updateItems(updatedItems);
   }, [composition]); // pas de productText ici sinon boucle infinie
 
-  // --- gestion + / - ---
+  // --- gestion + / -
   const handleminus = (id) => {
     updateItems((prev) =>
       prev.map((p) =>

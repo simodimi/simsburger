@@ -138,3 +138,24 @@ form .ServiceInscription {
 .CguContent p {
   text-align: justify;
 }
+.loginUser table tbody .rejectbtn {
+  padding: 20px 30px;
+}
+.rejectbtndelete {
+  display: none;
+}
+.loginUser table tbody td {
+  word-wrap: break-word;
+  white-space: normal;
+}
+@media screen and (max-width: 1900px) {
+  .loginUser table tbody .rejectbtn {
+    display: none;
+  }
+  .rejectbtndelete {
+    display: flex;
+    background-color: tomato;
+    padding: 0;
+    margin: auto;
+  }
+}

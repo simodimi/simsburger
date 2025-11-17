@@ -36,7 +36,7 @@ const Boisson = () => {
 
     // Gestion des erreurs
     newSocket.on("connect_error", (error) => {
-      console.error("❌ Erreur connexion Socket.io:", error);
+      console.error("Erreur connexion Socket.io:", error);
     });
 
     return () => {

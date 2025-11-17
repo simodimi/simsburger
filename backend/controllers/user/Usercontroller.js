@@ -144,21 +144,7 @@ const validateUserByToken = async (req, res) => {
     return res.status(500).send("Erreur serveur");
   }
 };
-/*//endpoint pour verifier statut (polling frontend)
-const getUserStatus = async (req, res) => {
-  try {
-    const iduser = req.params.iduser;
-    const user = await Admin.findByPk(iduser, {
-      attributes: ["iduser"],
-    });
-    if (!user)
-      return res.status(404).json({ message: "Utilisateur introuvable" });
-    return res.status(200).json({ iduser: user.iduser });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "une erreur est survenue" });
-  }
-};*/
+
 const deleteUser = async (req, res) => {
   try {
     const deleted = await User.destroy({
@@ -338,7 +324,7 @@ const verifyCode = async (req, res) => {
       return res.status(400).json({ message: "Code invalide" });
     }
 
-    // Code correct → on le supprime pour éviter la réutilisation
+    // on le supprime pour éviter la réutilisation
     verificationCodes.delete(mailuser);
 
     return res.status(200).json({ message: "Code vérifié avec succès" });
@@ -483,7 +469,7 @@ const updateUserPoints = async (req, res) => {
 
     // Mise à jour des totaux
     const newCumules = Number(user.pointscumules) + gained;
-    const newUtilises = Number(user.pointsutilises) + used; // 🔥 FIX IMPORTANT
+    const newUtilises = Number(user.pointsutilises) + used;
 
     // Points restants (avec sécurité)
     const newRestants = Math.max(0, newCumules - newUtilises);
@@ -561,7 +547,7 @@ const verifyUserCode = async (req, res) => {
         message: "Code de fidélité incorrect",
       });
     }
-    // Code correct - retourner les infos
+    //retourner les infos
     return res.status(200).json({
       valuecode: user.valuecode,
       valid: true,
@@ -569,7 +555,7 @@ const verifyUserCode = async (req, res) => {
       userEmail: mailuser,
     });
   } catch (error) {
-    console.error("❌ Erreur verifyUserCode:", error);
+    console.error("Erreur verifyUserCode:", error);
     return res.status(500).json({
       valuecode: null,
       valid: false,

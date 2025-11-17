@@ -102,7 +102,7 @@ const Statistique = () => {
     setMonthlyTopBurgers(monthlyTop);
   };
 
-  // CORRECTION : Mettre à jour les stats quand les commandes changent
+  //  Mettre à jour les stats quand les commandes changent
   useEffect(() => {
     if (orders.length > 0) {
       computeStats(orders);
@@ -121,7 +121,7 @@ const Statistique = () => {
     // Rejoindre la room des messages
     newSocket.emit("join_orders_room");
 
-    // CORRECTION : Utiliser une fonction de mise à jour correcte
+    //fonction de mise à jour
     newSocket.on("new_orderitems", (data) => {
       setOrders((prev) => {
         const newOrders = [data, ...prev];
@@ -131,7 +131,7 @@ const Statistique = () => {
 
     // Gestion des erreurs
     newSocket.on("connect_error", (error) => {
-      console.error("❌ Erreur connexion Socket.io:", error);
+      console.error("Erreur connexion Socket.io:", error);
     });
 
     return () => {

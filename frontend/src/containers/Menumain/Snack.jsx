@@ -5,14 +5,6 @@ import axios from "../../pagePrivate/Utils";
 import { io } from "socket.io-client";
 const Snack = () => {
   const [snackData, setSnackData] = useState([]);
-  /* useEffect(() => {
-    const savedStatus = JSON.parse(localStorage.getItem("productStatus")) || {};
-    const updated = snacks.map((item) => ({
-      ...item,
-      disabled: !!savedStatus[item.id],
-    }));
-    setSnackData(updated);
-  }, []);*/
   const [loading, setLoading] = useState(true);
   const [socket, setSocket] = useState(null);
 
@@ -43,7 +35,7 @@ const Snack = () => {
 
     // Gestion des erreurs
     newSocket.on("connect_error", (error) => {
-      console.error("❌ Erreur connexion Socket.io:", error);
+      console.error(" Erreur connexion Socket.io:", error);
     });
 
     return () => {

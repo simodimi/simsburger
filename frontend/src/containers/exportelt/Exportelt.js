@@ -2351,13 +2351,13 @@ export const MainListAdmin = [
   {
     id: 2,
     photo: img2A,
-    text: "statistiques des ventes",
+    text: "ventes",
     lien: "/admin/dashboard/statistique",
   },
   {
     id: 3,
     photo: img3A,
-    text: "Alertes et notifications",
+    text: "Alertes",
     lien: "/admin/dashboard/alert",
   },
   {
@@ -2375,7 +2375,7 @@ export const MainListAdmin = [
   {
     id: 6,
     photo: img6A,
-    text: "gestion des commandes",
+    text: "commandes",
     lien: "/admin/dashboard/gestioncommande",
   },
 ];

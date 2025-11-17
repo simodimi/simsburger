@@ -117,7 +117,7 @@ const Alert = () => {
           className="shoppingcontent"
           style={{ minHeight: "fit-content", scrollbarWidth: "none" }}
         >
-          <table>
+          <table className="tableadmins">
             <thead>
               <tr style={{ backgroundColor: "#e31937" }}>
                 <th>Jour du mois</th>

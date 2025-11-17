@@ -99,11 +99,11 @@ const InscriptionAdmin = () => {
       toast.success("Votre compte a été validé! Vous pouvez vous connecter.");
       handleClose();
       try {
-        // 🔥 Récupération des infos complètes de l'admin validé
+        // Récupération des infos complètes de l'admin validé
         const { data } = await axios.get(
           `http://localhost:5000/admin/${idadmin}`
         );
-        // ✅ Redirection vers LoginAdmin avec les données
+        // Redirection vers LoginAdmin avec les données
         navigate("/admin/", {
           state: {
             login: true,

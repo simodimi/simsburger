@@ -300,3 +300,113 @@ tbody tr {
   position: absolute;
   top: -20%;
 }
+#btnligne img {
+  max-width: 200px;
+  width: 100%;
+  height: auto;
+  object-fit: scale-down;
+}
+.shoppingcontent .rejectbtndelete {
+  display: none;
+}
+table tbody td {
+  word-wrap: break-word;
+  white-space: normal;
+}
+@media screen and (max-width: 1500px) {
+  #btnpaiement .rejectbtn {
+    display: none;
+  }
+  .shoppingcontent .rejectbtndelete {
+    display: flex;
+  }
+}
+@media screen and (min-width: 1100px) and (max-width: 1490px) {
+  .AccountUser input {
+    width: 50px;
+  }
+  .AccountContainer .rejectbtn,
+  .AccountContainer .nextbtn {
+    padding: 20px 20px;
+    font-size: 12px;
+  }
+}
+@media screen and (min-width: 1203px) and (max-width: 1672px) {
+  .UserDetails p {
+    font-size: 14px !important;
+  }
+  .AccountContainer .rejectbtn,
+  .AccountContainer .nextbtn {
+    padding: 20px 15px;
+    font-size: 12px;
+  }
+}
+@media screen and (min-width: 1156px) and (max-width: 1202px) {
+  .AccountRueNumber,
+  .AccountRueName {
+    width: 100%;
+  }
+  .AccountRue {
+    flex-direction: column;
+  }
+  .UserDetails p {
+    font-size: 14px !important;
+  }
+}
+@media screen and (min-width: 800px) and (max-width: 1155px) {
+  .AccountRueNumber,
+  .AccountRueName,
+  .AccountUserInf,
+  .Delivery,
+  .AccountUserInfs {
+    width: 100%;
+  }
+  .AccountRue,
+  .AccountUserInf,
+  .Delivery {
+    flex-direction: column;
+  }
+  .UserDetails p {
+    font-size: 14px !important;
+  }
+  .Delivery {
+    gap: 10px;
+  }
+}
+@media screen and (min-width: 1032px) and (max-width: 1099px) {
+  .AccountUsers {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .AccountContainer .rejectbtn,
+  .AccountContainer .nextbtn {
+    padding: 20px 15px;
+    font-size: 12px;
+  }
+}
+@media screen and (max-width: 1031px) {
+  .AccountUser input {
+    width: 50px;
+  }
+  .AccountUsers {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .AccountContainer {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .widthshop {
+    height: calc(100vh + 350px) !important;
+    background-color: tomato;
+  }
+}
+@media screen and (max-width: 1200px) {
+  .tableadmin {
+    overflow-x: scroll !important;
+    scrollbar-width: thin !important;
+    min-width: 900px !important;
+  }
+}
