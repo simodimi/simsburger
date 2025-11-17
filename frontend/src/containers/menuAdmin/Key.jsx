@@ -43,8 +43,11 @@ const Key = () => {
 
     // Écouter les mises à jour de sms en temps réel
     newSocket.on("new_orderitems", (data) => {
-      setOrders((prev) => [data, ...prev]);
-      computeStats([data, ...orders]);
+      setOrders((prev) => {
+        const newOrders = [data, ...prev];
+        computeStats(newOrders); // ←Appeler computeStats avec les nouvelles données
+        return newOrders;
+      });
     });
 
     // Gestion des erreurs
@@ -90,7 +93,9 @@ const Key = () => {
     const hoursRange = Array.from({ length: 23 }, (_, i) => 0 + i); // length: 13 }, (_, i) => 11 + i)
     const hourly = hoursRange.map((h) => {
       const ordersInHour = data.filter(
-        (o) => dayjs(o.date).isSame(today, "day") && dayjs(o.date).hour() === h
+        (o) =>
+          dayjs(o.order_date).isSame(today, "day") &&
+          dayjs(o.order_date).hour() === h
       );
 
       const revenue = ordersInHour.reduce((sum, o) => sum + getRevenue(o), 0);
@@ -107,8 +112,8 @@ const Key = () => {
     const weekly = daysOfWeek.map((d, idx) => {
       const ordersInDay = data.filter(
         (o) =>
-          dayjs(o.date).isoWeek() === today.isoWeek() &&
-          dayjs(o.date).isoWeekday() === idx + 1
+          dayjs(o.order_date).isoWeek() === today.isoWeek() &&
+          dayjs(o.order_date).isoWeekday() === idx + 1
       );
 
       const revenue = ordersInDay.reduce((sum, o) => sum + getRevenue(o), 0);
@@ -126,8 +131,8 @@ const Key = () => {
       const dayNum = i + 1;
       const ordersInDay = data.filter(
         (o) =>
-          dayjs(o.date).month() === today.month() &&
-          dayjs(o.date).date() === dayNum
+          dayjs(o.order_date).month() === today.month() &&
+          dayjs(o.order_date).date() === dayNum
       );
 
       const revenue = ordersInDay.reduce((sum, o) => sum + getRevenue(o), 0);
@@ -140,10 +145,14 @@ const Key = () => {
     });
 
     // Répartition globale (PieCharts)
-    const dailyOrders = data.filter((o) => dayjs(o.date).isSame(today, "day"));
-    const weeklyOrders = data.filter((o) => dayjs(o.date).isAfter(startOfWeek));
+    const dailyOrders = data.filter((o) =>
+      dayjs(o.order_date).isSame(today, "day")
+    );
+    const weeklyOrders = data.filter((o) =>
+      dayjs(o.order_date).isAfter(startOfWeek)
+    );
     const monthlyOrders = data.filter((o) =>
-      dayjs(o.date).isAfter(startOfMonth)
+      dayjs(o.order_date).isAfter(startOfMonth)
     );
 
     const todayRevenue = dailyOrders.reduce((sum, o) => sum + getRevenue(o), 0);

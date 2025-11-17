@@ -39,7 +39,9 @@ const Statistique = () => {
     const hoursRange = Array.from({ length: 23 }, (_, i) => 0 + i);
     const hourly = hoursRange.map((h) => {
       const ordersInHour = data.filter(
-        (o) => dayjs(o.date).isSame(today, "day") && dayjs(o.date).hour() === h
+        (o) =>
+          dayjs(o.order_date).isSame(today, "day") &&
+          dayjs(o.order_date).hour() === h
       );
 
       if (ordersInHour.length === 0)
@@ -70,7 +72,9 @@ const Statistique = () => {
     setHourlyTopBurgers(hourly);
 
     // TOP 5 BURGERS DE LA SEMAINE
-    const weeklyOrders = data.filter((o) => dayjs(o.date).isAfter(startOfWeek));
+    const weeklyOrders = data.filter((o) =>
+      dayjs(o.order_date).isAfter(startOfWeek)
+    );
     const weeklyCount = {};
     weeklyOrders.forEach((o) => {
       const name = o.names || "Inconnu";
@@ -86,7 +90,7 @@ const Statistique = () => {
 
     // TOP 5 BURGERS DU MOIS
     const monthlyOrders = data.filter((o) =>
-      dayjs(o.date).isAfter(startOfMonth)
+      dayjs(o.order_date).isAfter(startOfMonth)
     );
     const monthlyCount = {};
     monthlyOrders.forEach((o) => {
@@ -125,6 +129,7 @@ const Statistique = () => {
     newSocket.on("new_orderitems", (data) => {
       setOrders((prev) => {
         const newOrders = [data, ...prev];
+        computeStats(newOrders); // appeler computeStats avec les nouvelles données
         return newOrders;
       });
     });
