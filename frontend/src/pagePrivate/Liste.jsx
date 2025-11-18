@@ -48,22 +48,21 @@ const Liste = () => {
           setOrders([]);
           return;
         }
-
         const commandesRegroupees = response.data.reduce((acc, item) => {
           // Vérification que item existe
           if (!item) return acc;
-
-          const commandeId = item.order_id;
-
+          const commandeId = `${item.order_id}_${item.type}_${new Date(
+            item.createdAt
+          ).getTime()}`; //item.order_id;
           if (!acc[commandeId]) {
             acc[commandeId] = {
-              id: commandeId,
-              date: item.createdAt || new Date(),
+              id: item.order_id, //commandeId,
+              uniqueId: commandeId, // Ajout d'un identifiant unique pour chaque commande regroupée
+              date: item.createdAt, // || new Date(),
               type: item.type,
               items: [], // Toujours initialiser items comme tableau vide
             };
           }
-
           // Vérifier que acc[commandeId] existe avant de push
           if (acc[commandeId] && Array.isArray(acc[commandeId].items)) {
             acc[commandeId].items.push(item);
@@ -108,6 +107,144 @@ const Liste = () => {
 
   // vérifications ajoutées dans handleDownloadReceipt
   const handleDownloadReceipt = (commande) => {
+    if (!commande || !commande.items || !Array.isArray(commande.items)) {
+      console.error("Commande invalide pour le PDF:", commande);
+      return;
+    }
+
+    const doc = new jsPDF();
+
+    // Logo - position identique à la première facture
+    const img = new Image();
+    img.src = logo;
+    doc.addImage(img, "PNG", 20, 10, 25, 25);
+
+    // En-tête identique à la première facture
+    const today = new Date(commande.date).toLocaleString("fr-FR");
+
+    doc.setFontSize(18);
+    doc.text("Sim'sBurger", 20, 60);
+
+    doc.setFontSize(14);
+    doc.text("Reçu de commande", 20, 70);
+    doc.text(`Numéro de commande : ${commande.id}`, 20, 80);
+    doc.text(`Date : ${today}`, 20, 90);
+    // Liste des articles - format identique
+    doc.setFontSize(12);
+    doc.text("Articles :", 20, 100);
+    let y = 110;
+    const pageHeight = doc.internal.pageSize.height;
+    let soustotal = 0;
+    let fraisLivraison = 0;
+    commande.items.forEach((item) => {
+      if (!item) return;
+      // Calcul du prix total de l'article (identique à calculateItemTotal)
+      const itemTotal = calculateItemTotal(item);
+      soustotal += itemTotal;
+      const line = `${item.names || "Article sans nom"} x${
+        item.quantity || 1
+      } = ${itemTotal.toFixed(2)} €`;
+      if (y > pageHeight - 30) {
+        doc.addPage();
+        y = 20;
+      }
+      doc.text(line, 20, y);
+      y += 10;
+      // Afficher les ingrédients personnalisés (identique au premier format)
+      if (item.isCustom && item.customItems) {
+        item.customItems.forEach((customItem) => {
+          if (!customItem) return;
+          const baseQty = customItem.baseQuantity || 0;
+          const currentQty = customItem.quantity || 0;
+          const supplementQty = currentQty - baseQty;
+          if (supplementQty > 0) {
+            if (y > pageHeight - 30) {
+              doc.addPage();
+              y = 20;
+            }
+            // Format identique : "   + [nom]:1 × [prix] €"
+            doc.text(
+              `   + ${customItem.text || "Suppl."}:1 × ${(
+                customItem.prix ||
+                customItem.price ||
+                0
+              ).toFixed(2)} €`,
+              25,
+              y
+            );
+            y += 7;
+          }
+        });
+      }
+      // Afficher les ingrédients retirés (identique au premier format)
+      if (item.isCustom && item.removedItems && item.removedItems.length > 0) {
+        item.removedItems.forEach((removedItem) => {
+          if (!removedItem) return;
+
+          if (y > pageHeight - 30) {
+            doc.addPage();
+            y = 20;
+          }
+          // Format identique : "   - [nom] (retiré)"
+          doc.text(`   - ${removedItem.text || "Ingr."} (retiré)`, 25, y);
+          y += 7;
+        });
+      }
+      // Récupérer les frais de livraison si c'est une livraison
+      if (item.type === "livraison" && item.prixLivraison) {
+        fraisLivraison = parseFloat(item.prixLivraison) || 0;
+      }
+    });
+    // Totaux - format identique à la première facture
+    if (y > pageHeight - 50) {
+      doc.addPage();
+      y = 20;
+    }
+    // Sous-total
+    doc.text(`Sous-total : ${soustotal.toFixed(2)} €`, 20, y + 10);
+    // Réduction (si applicable dans votre système)
+    // Vous pouvez adapter cette partie selon votre logique de réduction
+    const reduction = 0;
+    doc.text(`Réduction : -${reduction.toFixed(2)} €`, 20, y + 20);
+    let currentY = y + 30;
+    // Informations de livraison (si c'est une livraison)
+    if (commande.type === "livraison") {
+      const firstItem = commande.items[0];
+      if (firstItem) {
+        doc.text(
+          `Numéro de téléphone : ${firstItem.telephone || "Non spécifié"}`,
+          20,
+          currentY
+        );
+        currentY += 10;
+
+        doc.text(
+          `Adresse de livraison : ${firstItem.adresse || "Non spécifiée"}`,
+          20,
+          currentY
+        );
+        currentY += 10;
+      }
+      doc.text(
+        `Frais de livraison : ${fraisLivraison.toFixed(2)} €`,
+        20,
+        currentY
+      );
+      currentY += 10;
+    }
+    // Total payé
+    const totalPaye = soustotal - reduction + fraisLivraison;
+    doc.text(`Total payé : ${totalPaye.toFixed(2)} €`, 20, currentY);
+    currentY += 10;
+    //type de commande
+    doc.text(`Type de commande : ${commande.type}`, 20, currentY);
+    currentY += 20;
+    // Message de remerciement
+    doc.text("Merci pour votre commande !", 20, currentY);
+    // Téléchargement avec le même nom de fichier
+    doc.save(`recu_de_commande_${commande.id}.pdf`);
+  };
+  /* const handleDownloadReceipt = (commande) => {
     if (!commande || !commande.items || !Array.isArray(commande.items)) {
       console.error("Commande invalide pour le PDF:", commande);
       return;
@@ -198,7 +335,7 @@ const Liste = () => {
     doc.text("Merci pour votre commande !", 20, y);
 
     doc.save(`facture-${commande.id}.pdf`);
-  };
+  };*/
   const calculateItemTotal = (item) => {
     // Utiliser la même logique que dans New.jsx
     let total = (item.prix || item.price || 0) * (item.quantity || 1);
@@ -248,7 +385,7 @@ const Liste = () => {
           }
 
           return (
-            <div key={commande.id} style={{ padding: "20px" }}>
+            <div key={commande.uniqueId} style={{ padding: "20px" }}>
               <div
                 className="shoppingfull"
                 style={{

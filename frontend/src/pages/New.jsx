@@ -602,18 +602,18 @@ const New = () => {
     const finalTotal = total + deliveryFee;
 
     doc.setFontSize(18);
-    doc.text("Sim'sBurger", 20, 20);
+    doc.text("Sim'sBurger", 55, 25);
 
     doc.setFontSize(14);
-    doc.text("Reçu de commande", 20, 30);
-    doc.text(`Numéro de commande : ${orderId}`, 20, 40);
-    doc.text(`Date : ${today}`, 20, 50);
+    doc.text("Reçu de commande", 20, 45);
+    doc.text(`Numéro de commande : ${orderId}`, 20, 55);
+    doc.text(`Date : ${today}`, 20, 65);
 
     // Liste des articles
     doc.setFontSize(12);
-    doc.text("Articles :", 20, 70);
+    doc.text("Articles :", 20, 85);
 
-    let y = 80;
+    let y = 95;
     const pageHeight = doc.internal.pageSize.height;
 
     cart.forEach((item) => {
@@ -671,9 +671,15 @@ const New = () => {
       doc.addPage();
       y = 20;
     }
+    // AFFICHER LA RÉDUCTION SEULEMENT SI CODE VALIDE ET RÉDUCTION > 0
+    if (codeValide && pointsrestants > 0) {
+      doc.text(`Sous-total : ${soustotal.toFixed(2)} €`, 20, y + 10);
+      doc.text(`Réduction : -${reduction.toFixed(2)} €`, 20, y + 20);
+    } else {
+      doc.text(`Sous-total : ${soustotal.toFixed(2)} €`, 20, y + 10);
+      doc.text(`Réduction : -0.00 €`, 20, y + 20);
+    }
 
-    doc.text(`Sous-total : ${soustotal.toFixed(2)} €`, 20, y + 10);
-    doc.text(`Réduction : -${reduction.toFixed(2)} €`, 20, y + 20);
     if (drive) {
       doc.text(`numéro de telephone : ${formValues.phone}`, 20, y + 30);
       doc.text(
