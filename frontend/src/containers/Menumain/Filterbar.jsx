@@ -28,8 +28,8 @@ const Filterbar = ({ data, setfilterdata }) => {
   return (
     <div className="FilterElt">
       {filterOptions.map((option) => {
-        const isAlwaysVisible = option.text === "tout";
-        const isType = data.some((item) => item.type === option.text);
+        const isAlwaysVisible = option.text === "tout"; //isAlwaysVisible est vrai si l'option du text est "tout"
+        const isType = data.some((item) => item.type === option.text); //si aucun item on affiche pas l'option
         const isBacon =
           option.text === "sans bacon" &&
           data.some((item) => item.bacon === "non");

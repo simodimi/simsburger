@@ -19,13 +19,6 @@ const Connection = () => {
   const [loading, setloading] = useState(false);
   const { login } = useAuth();
 
-  /*const handleopenPage = () => {
-    navigate("/connecter");
-    if (setlogin2) {
-      setlogin2(true);
-    }
-  };*/
-
   const [verification, setverification] = useState({
     verify1: false,
     verify2: false,
@@ -88,7 +81,7 @@ const Connection = () => {
     } // onClick={handleClickOpen}
     // Vérifier si les contraintes sont respectées
     if (!Object.values(verification).every(Boolean)) {
-      //transformation de l'objet en tableau avec Object.values every permet de verifier si toutes les valeurs sont true
+      //transformation de l'objet en tableau avec Object.values every permet de tester les valeurs de l'objet ,boolean(true ou false)
       setmsgerror(true);
       setmsgerrortext("Le mot de passe ne respecte pas toutes les règles");
       toast.error("Le mot de passe ne respecte pas toutes les règles");

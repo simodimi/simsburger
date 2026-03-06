@@ -36,7 +36,7 @@ import { io } from "socket.io-client";
 const DescribeProduct = () => {
   const articleRef = useRef(null);
   useEffect(() => {
-    articleRef.current?.scrollIntoView({ behavior: "auto" });
+    articleRef.current?.scrollIntoView({ behavior: "auto" }); //faire scroll automatiquement vers le haut de la page
   }, []);
 
   const navigate = useNavigate();
@@ -112,7 +112,7 @@ const DescribeProduct = () => {
           (s) => !s.disabled
         );
         const boissonsActives = filterBoissonByMenuLocal(menuType).filter(
-          (b) => !b.disabled
+          (b) => !b.disabled //pour tout element non desactivé
         );
 
         if (snacksActifs.length > 0) {

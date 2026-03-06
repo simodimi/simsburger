@@ -59,7 +59,7 @@ const ScrollPage = ({ title, data, routePrefix }) => {
             <div
               className={`PrincipalPlate ${item.disabled ? "disabled" : ""}`}
               key={item.id}
-              ref={(el) => (elementRefs.current[item.id] = el)}
+              ref={(el) => (elementRefs.current[item.id] = el)} //ref pour le scroll
               onClick={() => handleNavigate(item)}
             >
               <p>{item.text}</p>

@@ -18,8 +18,8 @@ const Personnalisation = ({
       quantity: 0,
       minus: true,
       plux: false,
-      wasModified: false,
-      baseQuantity: 0,
+      wasModified: false, //l'user a modifié l'article?
+      baseQuantity: 0, //quantité de base de l'article
     }))
   );
 
@@ -31,8 +31,9 @@ const Personnalisation = ({
 
     // --- Filtrage des catégories selon la composition ---
     const issauces = additems
-      .filter((p) => p.type === "sauce")
+      .filter((p) => p.type === "sauce") //prendre que les sauces
       .filter((sauce) =>
+        //filtrer les sauces selon la composition
         Object.values(composition).some(
           (val) => typeof val === "string" && val === sauce.text
         )
@@ -58,6 +59,7 @@ const Personnalisation = ({
     const isChicken = additems
       .filter((p) => p.type === "poulet")
       .filter((item) =>
+        //garde seulement ceux qui sont dans la composition
         Object.values(composition).some(
           (val) => typeof val === "string" && val === item.text
         )
@@ -109,11 +111,8 @@ const Personnalisation = ({
       productText === "Wrap chicken louisiane";
 
     // --- Création de la nouvelle liste ---
-    /* const updatedItems = currentItems.map((it) => {
-      const isComposition = Object.values(composition).some(
-        (val) => typeof val === "string" && val === it.text
-      );*/
     const updatedItems = currentItems.map((it) => {
+      // DÉTERMINER SI L'INGRÉDIENT FAIT PARTIE DE LA COMPOSITION
       const isComposition = Object.values(composition).some(
         (val) => typeof val === "string" && val === it.text
       );
@@ -127,7 +126,7 @@ const Personnalisation = ({
         // Sinon, base = 0
         baseQty = 0;
       }
-
+      //cacher les ingredints qui ne sont pas dans la composition
       const shouldHideSauce =
         it.type === "sauce" && !issauces.some((s) => s.id === it.id);
       const shouldHideTaille = it.taille && it.taille !== isTaille;

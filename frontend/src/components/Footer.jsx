@@ -77,9 +77,9 @@ const Footer = ({ handlenavigates, handlenavigat, handlenavig }) => {
                 width="400"
                 height="250"
                 style={{ border: 0 }}
-                allowFullScreen=""
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
+                allowFullScreen="" // "" ou "true" pour activer le plein ecran
+                loading="lazy" // permet de charger le contenu lorsque la page est chargée
+                referrerPolicy="no-referrer-when-downgrade" //sécurité contre les attaques de referrer
                 title="Localisation Sim'sBurger"
               ></iframe>
             </div>

@@ -47,7 +47,8 @@ const Hamburgers = () => {
     const loadSnack = async () => {
       try {
         const response = await axios.get("http://localhost:5000/product");
-        const backendProducts = Array.isArray(response.data)
+        //si la reponse n'est pas un tableau on met un tableau vide
+        const backendProducts = Array.isArray(response.data) // si response.data est un tableau,on utilise Array.isArray pour utiliser les fonctions de tableaux(find, map etc)
           ? response.data
           : [];
         // SOLUTION: Trouver d'abord toutes les correspondances
@@ -92,7 +93,7 @@ const Hamburgers = () => {
       } catch (error) {
         console.error("Erreur:", error);
         // Fallback: tout activé
-        const fallbackData = wrap.map((p) => ({
+        const fallbackData = hambs.map((p) => ({
           id: p.id,
           text: p.text,
           photo: p.photo,

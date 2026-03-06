@@ -848,7 +848,7 @@ const New = () => {
     // Nettoie la chaîne pour éviter espaces ou caractères spéciaux
     const currentHour = parseInt(heurefr);
     console.log(`Heure FR: ${currentHour}h`);
-    return currentHour < 0 || currentHour >= 23; // 11 23
+    return currentHour < 11 || currentHour >= 23; // 11 23
   };
   //mis à jour de l'heures
   const [timer, setTimer] = useState(
